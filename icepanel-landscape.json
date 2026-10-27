@@ -1,0 +1,1709 @@
+{
+  "namespace": "cex-trading",
+  "modelObjects": [
+    {
+      "id": "d-cex",
+      "name": "多活高可用 CEX 交易系统",
+      "type": "domain",
+      "description": "多活高可用 CEX 交易系统的顶层域：面向不同区域提供服务，多数据中心 Active-Active 部署，cross DC (100km) Raft 共识复制实现容灾 HA。"
+    },
+    {
+      "id": "s-clients",
+      "name": "客户端",
+      "type": "system",
+      "parentId": "d-cex",
+      "external": true,
+      "description": "交易用户入口：Web UI、iOS、Android 与客服系统 ZenDesk，经 HTTPS/WS 接入（用户面流量）。"
+    },
+    {
+      "id": "a-web",
+      "name": "WEB",
+      "type": "app",
+      "parentId": "s-clients",
+      "description": "浏览器端交易页面（Web UI）。"
+    },
+    {
+      "id": "a-ios",
+      "name": "iOS",
+      "type": "app",
+      "parentId": "s-clients",
+      "description": "iOS 交易 App。"
+    },
+    {
+      "id": "a-android",
+      "name": "Android",
+      "type": "app",
+      "parentId": "s-clients",
+      "description": "Android 交易 App。"
+    },
+    {
+      "id": "a-zendesk",
+      "name": "ZenDesk",
+      "type": "app",
+      "parentId": "s-clients",
+      "description": "客服工单与用户支持系统。"
+    },
+    {
+      "id": "s-openapi",
+      "name": "OpenAPI",
+      "type": "system",
+      "parentId": "d-cex",
+      "external": true,
+      "description": "对外开放的交易 API：现货、永续合约、预测与期权，供做市商自有策略交易系统接入（用户面流量）。"
+    },
+    {
+      "id": "a-api-spot",
+      "name": "现货 API",
+      "type": "app",
+      "parentId": "s-openapi",
+      "description": "现货交易 API。"
+    },
+    {
+      "id": "a-api-perp",
+      "name": "永续合约 API",
+      "type": "app",
+      "parentId": "s-openapi",
+      "description": "永续合约交易 API。"
+    },
+    {
+      "id": "a-api-pred",
+      "name": "预测 API",
+      "type": "app",
+      "parentId": "s-openapi",
+      "description": "预测产品交易 API。"
+    },
+    {
+      "id": "a-api-options",
+      "name": "期权 API",
+      "type": "app",
+      "parentId": "s-openapi",
+      "description": "期权交易 API。"
+    },
+    {
+      "id": "s-ops",
+      "name": "运营侧接入",
+      "type": "system",
+      "parentId": "d-cex",
+      "external": true,
+      "description": "控制面流量来源：交易所运营、风控运营、清算所运营、钱包运营、钱包风控运营、C2C 商户管理、做市商管理与 MPC 审批等操作 UI，经 VPN 通道一接入。"
+    },
+    {
+      "id": "a-opsui",
+      "name": "交易所运营 UI",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "交易所日常运营管理界面（控制面）。"
+    },
+    {
+      "id": "a-riskui",
+      "name": "风控运营 UI",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "风控运营管理界面（控制面）。"
+    },
+    {
+      "id": "a-chui",
+      "name": "清算所运营 UI",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "清算所运营管理界面（控制面）。"
+    },
+    {
+      "id": "a-walletui",
+      "name": "钱包运营 UI",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "钱包运营管理界面（控制面）。"
+    },
+    {
+      "id": "a-walletriskui",
+      "name": "钱包风控运营 UI",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "钱包风控运营管理界面（控制面）。"
+    },
+    {
+      "id": "a-mpcapp",
+      "name": "MPC APP（签名风控与审批）",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "MPC 签名的风控与审批 App（控制面）。"
+    },
+    {
+      "id": "a-vpn",
+      "name": "VPN（运营）",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "运营访问专用 VPN 通道（通道一）。"
+    },
+    {
+      "id": "s-mon",
+      "name": "监控治理接入",
+      "type": "system",
+      "parentId": "d-cex",
+      "external": true,
+      "description": "监控与治理面流量来源：集群监控 UI 与集群治理 UI，经 VPN 通道二接入。"
+    },
+    {
+      "id": "a-monui",
+      "name": "集群监控 UI",
+      "type": "app",
+      "parentId": "s-mon",
+      "description": "集群监控界面（监控与治理面）。"
+    },
+    {
+      "id": "a-govui",
+      "name": "集群治理 UI",
+      "type": "app",
+      "parentId": "s-mon",
+      "description": "集群治理界面（监控与治理面）。"
+    },
+    {
+      "id": "a-vpn2",
+      "name": "VPN（监控治理）",
+      "type": "app",
+      "parentId": "s-mon",
+      "description": "监控治理访问专用 VPN 通道（通道二）。"
+    },
+    {
+      "id": "s-gtm",
+      "name": "云厂商 GTM（DNS 层）",
+      "type": "system",
+      "parentId": "d-cex",
+      "external": true,
+      "description": "云厂商全局流量管理：依据流量路由策略将用户请求调度至不同数据中心的 CEX 集群；CDN、DDOS 防护与 WAF 位于 GTM DNS 层，各数据中心 LB 集群注册到 GTM。"
+    },
+    {
+      "id": "g-edge",
+      "name": "边缘防护",
+      "type": "group",
+      "parentId": "s-gtm"
+    },
+    {
+      "id": "a-cdn",
+      "name": "CDN",
+      "type": "app",
+      "parentId": "s-gtm",
+      "groupIds": [
+        "g-edge"
+      ],
+      "description": "内容分发与静态资源加速。"
+    },
+    {
+      "id": "a-ddos",
+      "name": "DDOS 防护",
+      "type": "app",
+      "parentId": "s-gtm",
+      "groupIds": [
+        "g-edge"
+      ],
+      "description": "高防清洗，抵御分布式拒绝服务攻击。"
+    },
+    {
+      "id": "a-waf",
+      "name": "WAF",
+      "type": "app",
+      "parentId": "s-gtm",
+      "groupIds": [
+        "g-edge"
+      ],
+      "description": "Web 应用防火墙。"
+    },
+    {
+      "id": "s-dc1",
+      "name": "数据中心 A · CEX 集群",
+      "type": "system",
+      "parentId": "d-cex",
+      "description": "CEX 集群所在数据中心：LB、网关、四类服务集群（内核/边缘/控制面/监控治理）与数据层；同 DC 内服务本地 HA 复制。"
+    },
+    {
+      "id": "a-lb",
+      "name": "LB 集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "description": "负载均衡集群（无状态），注册到云厂商 GTM。"
+    },
+    {
+      "id": "a-nginx",
+      "name": "nginx 网关集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "technologyIds": [
+        "nginx"
+      ],
+      "description": "网关集群（无状态）：流量控制、业务请求路由与限流；将请求直接转发至服务集群。"
+    },
+    {
+      "id": "g-svc",
+      "name": "服务集群",
+      "type": "group",
+      "parentId": "s-dc1",
+      "description": "交易系统服务集群：内核服务、边缘服务、控制面服务与监控治理服务；无状态与有状态服务以不同颜色区分，并分别汇入两个虚拟组。"
+    },
+    {
+      "id": "g-kernel",
+      "name": "内核服务",
+      "type": "group",
+      "parentId": "s-dc1",
+      "description": "内核服务：交易所核心引擎。"
+    },
+    {
+      "id": "a-riskmon",
+      "name": "风控监测引擎集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "风控监测引擎集群（事件驱动，非轮询）：主节点 + 多从节点，半同步复制（包含强平状态机）；由标记价格跳动、成交、资金费率与转账事件触发，跟踪 Top N 强平、保险与 ADL 候选（有状态）。"
+    },
+    {
+      "id": "a-riskgov",
+      "name": "风控治理服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "风控治理服务集群：主节点 + 多从节点，半同步复制（包含强平状态机）；执行强制平仓、保险与 ADL 自动减仓（有状态）。"
+    },
+    {
+      "id": "a-clearing",
+      "name": "清算集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "清算集群：持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）（有状态）。"
+    },
+    {
+      "id": "a-c2c",
+      "name": "C2C/P2P 交易服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "OTC 询价（RFQ）交易服务；状态存储于 Redis 集群，最终同步至 SQL 数据库（有状态）。"
+    },
+    {
+      "id": "a-account",
+      "name": "用户资产核算服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "用户资产核算服务集群：法币与加密资产归集与内部账本（有状态）。"
+    },
+    {
+      "id": "a-walletrisk",
+      "name": "钱包&钱包风控服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel",
+        "g-wallet"
+      ],
+      "description": "钱包&钱包风控服务：加密资产转账处理；监管合规与反洗钱检查（有状态）。"
+    },
+    {
+      "id": "a-mpcgw",
+      "name": "MPC 签名网关集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel",
+        "g-wallet"
+      ],
+      "description": "MPC 签名网关：签名请求路由与编排（有状态）。"
+    },
+    {
+      "id": "a-mpcactor",
+      "name": "MPC Actor（SGX）签名服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel",
+        "g-wallet"
+      ],
+      "description": "MPC Actor（SGX）签名服务：SGX 可信执行环境内的 MPC 多方签名（有状态）。"
+    },
+    {
+      "id": "a-kyt",
+      "name": "KYT（Elliptic）服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel",
+        "g-wallet"
+      ],
+      "description": "KYT（Elliptic）：链上交易合规分析（有状态）。"
+    },
+    {
+      "id": "g-edge-svc",
+      "name": "边缘服务",
+      "type": "group",
+      "parentId": "s-dc1",
+      "description": "边缘服务（无状态）：面向用户的接入层服务，含 CQRS 交易网关、开放平台 API Key 管理、活动服务与数据读取管线。"
+    },
+    {
+      "id": "a-user",
+      "name": "用户管理服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc"
+      ],
+      "description": "用户管理服务（无状态）。"
+    },
+    {
+      "id": "a-auth",
+      "name": "鉴权 AUTH 集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc"
+      ],
+      "description": "基于 JWT 的登录鉴权（无状态）。"
+    },
+    {
+      "id": "a-mdgw",
+      "name": "行情（发布/订阅）网关服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc",
+        "g-readpipe"
+      ],
+      "description": "行情发布/订阅网关（无状态）。"
+    },
+    {
+      "id": "a-msg",
+      "name": "用户消息服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc"
+      ],
+      "description": "邮件、短信与 App 推送等用户消息触达（无状态）。"
+    },
+    {
+      "id": "a-kyc",
+      "name": "KYC 服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc"
+      ],
+      "description": "用户实名认证（无状态）。"
+    },
+    {
+      "id": "g-ctl",
+      "name": "控制面服务",
+      "type": "group",
+      "parentId": "s-dc1",
+      "description": "控制面服务（无状态）：运营配置、持仓锁定、红包、IEO、空投、优惠券、审计日志服务、监管报表服务、定时调度服务、资金对账服务与配置中心。"
+    },
+    {
+      "id": "a-opcfg",
+      "name": "运营配置（风控引擎 · 费率等）",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "运营配置下发（风控引擎、费率等），由运营后台操作（无状态服务）。"
+    },
+    {
+      "id": "a-poslock",
+      "name": "持仓锁定",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "持仓锁定（Position Locking）运营操作（无状态服务）。"
+    },
+    {
+      "id": "a-hongbao",
+      "name": "红包",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "红包活动运营（无状态服务）。"
+    },
+    {
+      "id": "a-ieo",
+      "name": "IEO",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "交易所首次发行（IEO）运营（无状态服务）。"
+    },
+    {
+      "id": "a-airdrop",
+      "name": "空投",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "空投活动运营（无状态服务）。"
+    },
+    {
+      "id": "a-coupon",
+      "name": "优惠券",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "优惠券活动运营（无状态服务）。"
+    },
+    {
+      "id": "g-mon",
+      "name": "监控与治理面",
+      "type": "group",
+      "parentId": "s-dc1",
+      "description": "监控与治理面（无状态）：监控与治理集群与撮合回放服务集群；主从故障切换由共识算法自动完成，无需人工操作。"
+    },
+    {
+      "id": "g-data",
+      "name": "数据层集群",
+      "type": "group",
+      "parentId": "s-dc1",
+      "description": "数据层集群：Aeron 消息、Redis 缓存、行情数据中心、数据归档、ES、列式数据中心、SQL、对象存储与时序数据库。"
+    },
+    {
+      "id": "s-aeron",
+      "name": "Aeron 消息集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "description": "Aeron 分布式消息队列集群，服务集群内部服务间消息通信（有状态）。"
+    },
+    {
+      "id": "s-redis",
+      "name": "Redis 缓存集群",
+      "type": "store",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "technologyIds": [
+        "redis"
+      ],
+      "description": "Redis 缓存集群（有状态存储，多实例集群）。"
+    },
+    {
+      "id": "s-mdstore",
+      "name": "行情数据中心",
+      "type": "store",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "technologyIds": [
+        "redis"
+      ],
+      "description": "行情数据中心：Redis 集群分片，存储行情数据（有状态存储）。"
+    },
+    {
+      "id": "a-archive",
+      "name": "数据归档服务",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "description": "历史数据归档。"
+    },
+    {
+      "id": "a-es",
+      "name": "ES 数据服务",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "technologyIds": [
+        "elasticsearch"
+      ],
+      "description": "Elasticsearch 数据服务：订单、成交、资金流水等数据查询与应用日志聚合。"
+    },
+    {
+      "id": "s-columnar",
+      "name": "列式数据中心",
+      "type": "store",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "description": "列式数据库，存储回归测试行情数据（有状态存储）。"
+    },
+    {
+      "id": "s-sql",
+      "name": "SQL 数据库集群",
+      "type": "store",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "description": "SQL 关系数据库集群（有状态存储），由 Redis XStream 复制入库。"
+    },
+    {
+      "id": "s-oss",
+      "name": "对象存储集群",
+      "type": "store",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "description": "对象存储集群（有状态存储，归档与快照）。"
+    },
+    {
+      "id": "s-ts",
+      "name": "时序数据库（指标）",
+      "type": "store",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "description": "时序数据库（有状态存储，系统监控指标）。"
+    },
+    {
+      "id": "s-extconn",
+      "name": "外部系统连接器",
+      "type": "system",
+      "parentId": "d-cex",
+      "external": true,
+      "description": "外部系统连接器：公链 RPC 集群、KYT 服务提供商、第三方 KYC 服务提供商、第三方钱包代理、法币通道代理与指数价格数据源。"
+    },
+    {
+      "id": "a-rpc",
+      "name": "公链 RPC 集群",
+      "type": "app",
+      "parentId": "s-extconn",
+      "description": "公链 RPC 节点集群（外部）。"
+    },
+    {
+      "id": "a-kytp",
+      "name": "KYT 服务提供商",
+      "type": "app",
+      "parentId": "s-extconn",
+      "description": "KYT 链上合规数据服务提供商（外部）。"
+    },
+    {
+      "id": "a-kyc3p",
+      "name": "第三方 KYC 服务提供商",
+      "type": "app",
+      "parentId": "s-extconn",
+      "description": "第三方 KYC 实名认证服务提供商（外部）。"
+    },
+    {
+      "id": "a-walletagent",
+      "name": "第三方钱包代理",
+      "type": "app",
+      "parentId": "s-extconn",
+      "description": "第三方钱包代理（外部）。"
+    },
+    {
+      "id": "a-fiat",
+      "name": "法币通道代理",
+      "type": "app",
+      "parentId": "s-extconn",
+      "description": "法币出入金通道代理（外部）。"
+    },
+    {
+      "id": "s-dc2",
+      "name": "数据中心 B · CEX 集群（同构）",
+      "type": "system",
+      "parentId": "d-cex",
+      "description": "与数据中心 A 同构的 CEX 集群（LB、网关、服务集群与数据层），经 cross DC (100km) Raft 共识复制实现容灾 HA。"
+    },
+    {
+      "id": "a-index",
+      "name": "指数价格服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "指数价格服务（预言机）：聚合外部行情数据计算标记价格，供资金费率、期权交割与强平使用（有状态）。"
+    },
+    {
+      "id": "a-kms",
+      "name": "KMS/HSM 密钥管理服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel",
+        "g-wallet"
+      ],
+      "description": "KMS/HSM 密钥管理服务：JWT 签名密钥、API Key 等系统密钥托管（有状态）。"
+    },
+    {
+      "id": "a-apikey",
+      "name": "开放平台 API Key 管理服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc"
+      ],
+      "description": "开放平台 API Key 管理服务：API Key 签发、签名校验与限流（无状态）。"
+    },
+    {
+      "id": "a-audit",
+      "name": "审计日志服务",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "审计日志服务：操作留痕，写入对象存储（无状态）。"
+    },
+    {
+      "id": "a-report",
+      "name": "监管报表服务",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "监管报表服务：监管报送（可疑交易报告等）（无状态）。"
+    },
+    {
+      "id": "a-sched",
+      "name": "定时调度服务",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "定时调度服务：统一定时任务调度（资金费结算、快照、活动开奖等）（无状态）。"
+    },
+    {
+      "id": "a-recon",
+      "name": "资金对账服务",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "资金对账服务：清算、钱包与法币通道之间的账实核对（无状态）。"
+    },
+    {
+      "id": "a-c2cui",
+      "name": "C2C 商户管理 UI",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "C2C/P2P 商户与广告管理界面（控制面）。"
+    },
+    {
+      "id": "a-indexsrc",
+      "name": "指数价格数据源",
+      "type": "app",
+      "parentId": "s-extconn",
+      "description": "指数价格数据源（外部）：多家交易所行情接入。"
+    },
+    {
+      "id": "a-pretrade",
+      "name": "预交易集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。主从节点 IP 注册至交易调度网关。"
+    },
+    {
+      "id": "a-mdengine",
+      "name": "行情引擎集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "行情引擎集群：按交易对（Symbol）分片部署；聚合行情数据并分片写入 Redis 行情数据中心，主节点 + 多从节点半同步复制备份（有状态）。"
+    },
+    {
+      "id": "a-settlement",
+      "name": "结算集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "结算集群：衍生品结算——定期触发的资金费率收取与到期事件触发的期权交割结算（有状态）。"
+    },
+    {
+      "id": "a-deposit",
+      "name": "充提币服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "充提币服务集群：提现请求管理、充值扫链监控、提币地址白名单与签名编排（无状态）。"
+    },
+    {
+      "id": "a-oms",
+      "name": "OMS & 撮合引擎集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "OMS & 撮合引擎集群：覆盖现货、永续合约、期权与预测四条产品线；每个产品线主节点 + 多从节点，半同步复制；订单簿状态管理与撮合执行（有状态）。"
+    },
+    {
+      "id": "a-monitoring",
+      "name": "监控与治理集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-mon"
+      ],
+      "description": "监控与治理集群：服务指标监控与服务健康监控（无状态）；主从故障切换由共识算法自动完成，无需人工操作。"
+    },
+    {
+      "id": "a-datareader",
+      "name": "数据读取集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc",
+        "g-readpipe"
+      ],
+      "description": "数据读取集群：统一数据读取入口，所有数据查询请求（行情、订单、成交、资产等）经其读取数据层（无状态）。"
+    },
+    {
+      "id": "g-readpipe",
+      "name": "数据读取管线",
+      "type": "group",
+      "parentId": "s-dc1",
+      "description": "数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅网关集群，统一承载数据读取流水线。"
+    },
+    {
+      "id": "g-wallet",
+      "name": "钱包服务集群",
+      "type": "group",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "钱包服务集群：Web3 区块链交易处理；内含钱包风控、MPC 签名网关、MPC Actor（SGX）、KYT 与 KMS/HSM 密钥管理等子系统（有状态）。"
+    },
+    {
+      "id": "a-campaign",
+      "name": "活动服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc"
+      ],
+      "description": "活动服务集群：用户面活动执行——红包领取、IEO 申购、空投申领、优惠券使用（无状态）。"
+    },
+    {
+      "id": "a-cfgcenter",
+      "name": "配置中心",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-ctl"
+      ],
+      "description": "配置中心：服务级动态配置下发（轻量服务）。"
+    },
+    {
+      "id": "a-mmgr-ui",
+      "name": "做市商管理 UI",
+      "type": "app",
+      "parentId": "s-ops",
+      "description": "做市商管理界面（控制面）。"
+    },
+    {
+      "id": "a-replay",
+      "name": "撮合回放服务集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-mon"
+      ],
+      "description": "撮合回放服务集群：基于列式数据中心的回归测试行情回放撮合流程（无状态）。"
+    },
+    {
+      "id": "a-ai",
+      "name": "AI 交易集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "AI 交易集群：在实时行情与订单簿之上运行 AI 交易员推理；用户将账户委托给 AI 交易集群，支付费用由 CEX 代为交易以获取更高收益（有状态）。"
+    },
+    {
+      "id": "a-lb-b",
+      "name": "LB 集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "description": "负载均衡集群（无状态），注册到云厂商 GTM。（数据中心 B）"
+    },
+    {
+      "id": "a-nginx-b",
+      "name": "nginx 网关集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "technologyIds": [
+        "nginx"
+      ],
+      "description": "网关集群（无状态）：流量控制、业务请求路由与限流；将请求直接转发至服务集群。（数据中心 B）"
+    },
+    {
+      "id": "g-svc-b",
+      "name": "服务集群",
+      "type": "group",
+      "parentId": "s-dc2",
+      "description": "交易系统服务集群：内核服务、边缘服务、控制面服务与监控治理服务；无状态与有状态服务以不同颜色区分，并分别汇入两个虚拟组。（数据中心 B）"
+    },
+    {
+      "id": "g-kernel-b",
+      "name": "内核服务",
+      "type": "group",
+      "parentId": "s-dc2",
+      "description": "内核服务：交易所核心引擎。（数据中心 B）"
+    },
+    {
+      "id": "a-riskmon-b",
+      "name": "风控监测引擎集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "风控监测引擎集群（事件驱动，非轮询）：主节点 + 多从节点，半同步复制（包含强平状态机）；由标记价格跳动、成交、资金费率与转账事件触发，跟踪 Top N 强平、保险与 ADL 候选（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-riskgov-b",
+      "name": "风控治理服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "风控治理服务集群：主节点 + 多从节点，半同步复制（包含强平状态机）；执行强制平仓、保险与 ADL 自动减仓（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-clearing-b",
+      "name": "清算集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "清算集群：持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-c2c-b",
+      "name": "C2C/P2P 交易服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "OTC 询价（RFQ）交易服务；状态存储于 Redis 集群，最终同步至 SQL 数据库（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-account-b",
+      "name": "用户资产核算服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "用户资产核算服务集群：法币与加密资产归集与内部账本（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-walletrisk-b",
+      "name": "钱包&钱包风控服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b",
+        "g-wallet-b"
+      ],
+      "description": "钱包&钱包风控服务：加密资产转账处理；监管合规与反洗钱检查（有状态）。"
+    },
+    {
+      "id": "a-mpcgw-b",
+      "name": "MPC 签名网关集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b",
+        "g-wallet-b"
+      ],
+      "description": "MPC 签名网关：签名请求路由与编排（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-mpcactor-b",
+      "name": "MPC Actor（SGX）签名服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b",
+        "g-wallet-b"
+      ],
+      "description": "MPC Actor（SGX）签名服务：SGX 可信执行环境内的 MPC 多方签名（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-kyt-b",
+      "name": "KYT（Elliptic）服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b",
+        "g-wallet-b"
+      ],
+      "description": "KYT（Elliptic）：链上交易合规分析（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "g-edge-svc-b",
+      "name": "边缘服务",
+      "type": "group",
+      "parentId": "s-dc2",
+      "description": "边缘服务（无状态）：面向用户的接入层服务，含 CQRS 交易网关、开放平台 API Key 管理、活动服务与数据读取管线。"
+    },
+    {
+      "id": "a-user-b",
+      "name": "用户管理服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b"
+      ],
+      "description": "用户管理服务（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-auth-b",
+      "name": "鉴权 AUTH 集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b"
+      ],
+      "description": "基于 JWT 的登录鉴权（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-mdgw-b",
+      "name": "行情（发布/订阅）网关服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b",
+        "g-readpipe-b"
+      ],
+      "description": "行情发布/订阅网关（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-msg-b",
+      "name": "用户消息服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b"
+      ],
+      "description": "邮件、短信与 App 推送等用户消息触达（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-kyc-b",
+      "name": "KYC 服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b"
+      ],
+      "description": "用户实名认证（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "g-ctl-b",
+      "name": "控制面服务",
+      "type": "group",
+      "parentId": "s-dc2",
+      "description": "控制面服务（无状态）：运营配置、持仓锁定、红包、IEO、空投、优惠券、审计日志服务、监管报表服务、定时调度服务、资金对账服务与配置中心。（数据中心 B）"
+    },
+    {
+      "id": "a-opcfg-b",
+      "name": "运营配置（风控引擎 · 费率等）",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "运营配置下发（风控引擎、费率等），由运营后台操作（无状态服务）。（数据中心 B）"
+    },
+    {
+      "id": "a-poslock-b",
+      "name": "持仓锁定",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "持仓锁定（Position Locking）运营操作（无状态服务）。（数据中心 B）"
+    },
+    {
+      "id": "a-hongbao-b",
+      "name": "红包",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "红包活动运营（无状态服务）。（数据中心 B）"
+    },
+    {
+      "id": "a-ieo-b",
+      "name": "IEO",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "交易所首次发行（IEO）运营（无状态服务）。（数据中心 B）"
+    },
+    {
+      "id": "a-airdrop-b",
+      "name": "空投",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "空投活动运营（无状态服务）。（数据中心 B）"
+    },
+    {
+      "id": "a-coupon-b",
+      "name": "优惠券",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "优惠券活动运营（无状态服务）。（数据中心 B）"
+    },
+    {
+      "id": "g-mon-b",
+      "name": "监控与治理面",
+      "type": "group",
+      "parentId": "s-dc2",
+      "description": "监控与治理面（无状态）：监控与治理集群与撮合回放服务集群；主从故障切换由共识算法自动完成，无需人工操作。（数据中心 B）"
+    },
+    {
+      "id": "g-data-b",
+      "name": "数据层集群",
+      "type": "group",
+      "parentId": "s-dc2",
+      "description": "数据层集群：Aeron 消息、Redis 缓存、行情数据中心、数据归档、ES、列式数据中心、SQL、对象存储与时序数据库。（数据中心 B）"
+    },
+    {
+      "id": "s-aeron-b",
+      "name": "Aeron 消息集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "description": "Aeron 分布式消息队列集群，服务集群内部服务间消息通信（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "s-redis-b",
+      "name": "Redis 缓存集群",
+      "type": "store",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "technologyIds": [
+        "redis"
+      ],
+      "description": "Redis 缓存集群（有状态存储，多实例集群）。（数据中心 B）"
+    },
+    {
+      "id": "s-mdstore-b",
+      "name": "行情数据中心",
+      "type": "store",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "technologyIds": [
+        "redis"
+      ],
+      "description": "行情数据中心：Redis 集群分片，存储行情数据（有状态存储）。（数据中心 B）"
+    },
+    {
+      "id": "a-archive-b",
+      "name": "数据归档服务",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "description": "历史数据归档。（数据中心 B）"
+    },
+    {
+      "id": "a-es-b",
+      "name": "ES 数据服务",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "technologyIds": [
+        "elasticsearch"
+      ],
+      "description": "Elasticsearch 数据服务：订单、成交、资金流水等数据查询与应用日志聚合。（数据中心 B）"
+    },
+    {
+      "id": "s-columnar-b",
+      "name": "列式数据中心",
+      "type": "store",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "description": "列式数据库，存储回归测试行情数据（有状态存储）。（数据中心 B）"
+    },
+    {
+      "id": "s-sql-b",
+      "name": "SQL 数据库集群",
+      "type": "store",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "description": "SQL 关系数据库集群（有状态存储），由 Redis XStream 复制入库。（数据中心 B）"
+    },
+    {
+      "id": "s-oss-b",
+      "name": "对象存储集群",
+      "type": "store",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "description": "对象存储集群（有状态存储，归档与快照）。（数据中心 B）"
+    },
+    {
+      "id": "s-ts-b",
+      "name": "时序数据库（指标）",
+      "type": "store",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "description": "时序数据库（有状态存储，系统监控指标）。（数据中心 B）"
+    },
+    {
+      "id": "a-index-b",
+      "name": "指数价格服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "指数价格服务（预言机）：聚合外部行情数据计算标记价格，供资金费率、期权交割与强平使用（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-kms-b",
+      "name": "KMS/HSM 密钥管理服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b",
+        "g-wallet-b"
+      ],
+      "description": "KMS/HSM 密钥管理服务：JWT 签名密钥、API Key 等系统密钥托管（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-apikey-b",
+      "name": "开放平台 API Key 管理服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b"
+      ],
+      "description": "开放平台 API Key 管理服务：API Key 签发、签名校验与限流（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-audit-b",
+      "name": "审计日志服务",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "审计日志服务：操作留痕，写入对象存储（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-report-b",
+      "name": "监管报表服务",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "监管报表服务：监管报送（可疑交易报告等）（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-sched-b",
+      "name": "定时调度服务",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "定时调度服务：统一定时任务调度（资金费结算、快照、活动开奖等）（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-recon-b",
+      "name": "资金对账服务",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "资金对账服务：清算、钱包与法币通道之间的账实核对（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-pretrade-b",
+      "name": "预交易集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。（数据中心 B）主从节点 IP 注册至交易调度网关。"
+    },
+    {
+      "id": "a-mdengine-b",
+      "name": "行情引擎集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "行情引擎集群：按交易对（Symbol）分片部署；聚合行情数据并分片写入 Redis 行情数据中心，主节点 + 多从节点半同步复制备份（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-settlement-b",
+      "name": "结算集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "结算集群：衍生品结算——定期触发的资金费率收取与到期事件触发的期权交割结算（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-deposit-b",
+      "name": "充提币服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "充提币服务集群：提现请求管理、充值扫链监控、提币地址白名单与签名编排（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-oms-b",
+      "name": "OMS & 撮合引擎集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "OMS & 撮合引擎集群：覆盖现货、永续合约、期权与预测四条产品线；每个产品线主节点 + 多从节点，半同步复制；订单簿状态管理与撮合执行（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-monitoring-b",
+      "name": "监控与治理集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-mon-b"
+      ],
+      "description": "监控与治理集群：服务指标监控与服务健康监控（无状态）；主从故障切换由共识算法自动完成，无需人工操作。（数据中心 B）"
+    },
+    {
+      "id": "a-datareader-b",
+      "name": "数据读取集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b",
+        "g-readpipe-b"
+      ],
+      "description": "数据读取集群：统一数据读取入口，所有数据查询请求（行情、订单、成交、资产等）经其读取数据层（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "g-readpipe-b",
+      "name": "数据读取管线",
+      "type": "group",
+      "parentId": "s-dc2",
+      "description": "数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅网关集群，统一承载数据读取流水线。（数据中心 B）"
+    },
+    {
+      "id": "g-wallet-b",
+      "name": "钱包服务集群",
+      "type": "group",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "钱包服务集群：Web3 区块链交易处理；内含钱包风控、MPC 签名网关、MPC Actor（SGX）、KYT 与 KMS/HSM 密钥管理等子系统（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-campaign-b",
+      "name": "活动服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b"
+      ],
+      "description": "活动服务集群：用户面活动执行——红包领取、IEO 申购、空投申领、优惠券使用（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-cfgcenter-b",
+      "name": "配置中心",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-ctl-b"
+      ],
+      "description": "配置中心：服务级动态配置下发（轻量服务）。（数据中心 B）"
+    },
+    {
+      "id": "a-replay-b",
+      "name": "撮合回放服务集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-mon-b"
+      ],
+      "description": "撮合回放服务集群：基于列式数据中心的回归测试行情回放撮合流程（无状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-ai-b",
+      "name": "AI 交易集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "AI 交易集群：在实时行情与订单簿之上运行 AI 交易员推理；用户将账户委托给 AI 交易集群，支付费用由 CEX 代为交易以获取更高收益（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "a-cqrs",
+      "name": "交易调度网关集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-edge-svc"
+      ],
+      "description": "交易调度网关集群：感知预交易集群的主节点（预交易集群向网关注册主从节点 IP）；交易命令按账户 ID 分片路由至下游主预交易节点（双数据中心均可调度转发）（无状态）。"
+    },
+    {
+      "id": "a-cqrs-b",
+      "name": "交易调度网关集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-edge-svc-b"
+      ],
+      "description": "交易调度网关集群：感知预交易集群的主节点（预交易集群向网关注册主从节点 IP）；交易命令按账户 ID 分片路由至下游主预交易节点（双数据中心均可调度转发）（无状态）。"
+    }
+  ],
+  "modelConnections": [
+    {
+      "id": "c-web-cdn",
+      "name": "https/ws",
+      "direction": "outgoing",
+      "originId": "a-web",
+      "targetId": "a-cdn"
+    },
+    {
+      "id": "c-ios-cdn",
+      "name": "https/ws",
+      "direction": "outgoing",
+      "originId": "a-ios",
+      "targetId": "a-cdn"
+    },
+    {
+      "id": "c-android-cdn",
+      "name": "https/ws",
+      "direction": "outgoing",
+      "originId": "a-android",
+      "targetId": "a-cdn"
+    },
+    {
+      "id": "c-zendesk-cdn",
+      "name": "https/ws",
+      "direction": "outgoing",
+      "originId": "a-zendesk",
+      "targetId": "a-cdn"
+    },
+    {
+      "id": "c-api-cdn",
+      "name": "https/ws",
+      "direction": "outgoing",
+      "originId": "s-openapi",
+      "targetId": "a-cdn"
+    },
+    {
+      "id": "c-cdn-ddos",
+      "name": "流量清洗",
+      "direction": "outgoing",
+      "originId": "a-cdn",
+      "targetId": "a-ddos"
+    },
+    {
+      "id": "c-ddos-waf",
+      "name": "过滤",
+      "direction": "outgoing",
+      "originId": "a-ddos",
+      "targetId": "a-waf"
+    },
+    {
+      "id": "c-waf-lb",
+      "name": "转发",
+      "direction": "outgoing",
+      "originId": "a-waf",
+      "targetId": "a-lb"
+    },
+    {
+      "id": "c-lb-gtm",
+      "name": "注册到 GTM",
+      "direction": "outgoing",
+      "originId": "a-lb",
+      "targetId": "s-gtm"
+    },
+    {
+      "id": "c-ops-vpn",
+      "name": "访问",
+      "direction": "outgoing",
+      "originId": "s-ops",
+      "targetId": "a-vpn"
+    },
+    {
+      "id": "c-vpn-lb",
+      "name": "专线",
+      "direction": "outgoing",
+      "originId": "a-vpn",
+      "targetId": "a-lb"
+    },
+    {
+      "id": "c-mon-vpn",
+      "name": "访问",
+      "direction": "outgoing",
+      "originId": "s-mon",
+      "targetId": "a-vpn2"
+    },
+    {
+      "id": "c-vpn2-lb",
+      "name": "专线",
+      "direction": "outgoing",
+      "originId": "a-vpn2",
+      "targetId": "a-lb"
+    },
+    {
+      "id": "c-lb-nginx",
+      "name": "转发",
+      "direction": "outgoing",
+      "originId": "a-lb",
+      "targetId": "a-nginx"
+    },
+    {
+      "id": "c-redis-sql",
+      "name": "复制（XStream）",
+      "direction": "outgoing",
+      "originId": "s-redis",
+      "targetId": "s-sql"
+    },
+    {
+      "id": "c-dc1-dc2",
+      "name": "cross DC (100km) Raft HA",
+      "direction": "bidirectional",
+      "originId": "s-dc1",
+      "targetId": "s-dc2"
+    },
+    {
+      "id": "c-extconn-dc1",
+      "name": "外部连接",
+      "direction": "outgoing",
+      "originId": "s-extconn",
+      "targetId": "s-dc1"
+    },
+    {
+      "id": "c-nginx-svc",
+      "name": "转发",
+      "direction": "outgoing",
+      "originId": "a-nginx",
+      "targetId": "g-svc"
+    },
+    {
+      "id": "c-archive-oss",
+      "name": "归档",
+      "direction": "outgoing",
+      "originId": "a-archive",
+      "targetId": "s-oss"
+    },
+    {
+      "id": "c-audit-oss",
+      "name": "写入",
+      "direction": "outgoing",
+      "originId": "a-audit",
+      "targetId": "s-oss"
+    },
+    {
+      "id": "c-wallet-rpc",
+      "name": "广播上链",
+      "direction": "outgoing",
+      "originId": "g-wallet",
+      "targetId": "a-rpc"
+    },
+    {
+      "id": "c-account-fiat",
+      "name": "法币出金",
+      "direction": "outgoing",
+      "originId": "a-account",
+      "targetId": "a-fiat"
+    },
+    {
+      "id": "c-fiat-deposit",
+      "name": "法币入金",
+      "direction": "outgoing",
+      "originId": "a-fiat",
+      "targetId": "a-deposit"
+    },
+    {
+      "id": "c-nginx-svc-b",
+      "name": "转发",
+      "direction": "outgoing",
+      "originId": "a-nginx-b",
+      "targetId": "g-svc-b"
+    },
+    {
+      "id": "c-lb-nginx-b",
+      "name": "转发",
+      "direction": "outgoing",
+      "originId": "a-lb-b",
+      "targetId": "a-nginx-b"
+    },
+    {
+      "id": "c-lb-gtm-b",
+      "name": "注册到 GTM",
+      "direction": "outgoing",
+      "originId": "a-lb-b",
+      "targetId": "s-gtm"
+    },
+    {
+      "id": "c-archive-oss-b",
+      "name": "归档",
+      "direction": "outgoing",
+      "originId": "a-archive-b",
+      "targetId": "s-oss-b"
+    },
+    {
+      "id": "c-redis-sql-b",
+      "name": "复制（XStream）",
+      "direction": "outgoing",
+      "originId": "s-redis-b",
+      "targetId": "s-sql-b"
+    },
+    {
+      "id": "c-dc-repl-ab",
+      "name": "跨 DC 主从半同步复制（A → B）",
+      "direction": "outgoing",
+      "originId": "g-kernel",
+      "targetId": "g-kernel-b"
+    },
+    {
+      "id": "c-dc-repl-ba",
+      "name": "跨 DC 主从半同步复制（B → A）",
+      "direction": "outgoing",
+      "originId": "g-kernel-b",
+      "targetId": "g-kernel"
+    },
+    {
+      "id": "c-sched-pretrade-a",
+      "name": "按账户 ID 分片",
+      "direction": "outgoing",
+      "originId": "a-cqrs",
+      "targetId": "a-pretrade"
+    },
+    {
+      "id": "c-sched-pretrade-ab",
+      "name": "按账户 ID 分片",
+      "direction": "outgoing",
+      "originId": "a-cqrs",
+      "targetId": "a-pretrade-b"
+    },
+    {
+      "id": "c-sched-pretrade-b",
+      "name": "按账户 ID 分片",
+      "direction": "outgoing",
+      "originId": "a-cqrs-b",
+      "targetId": "a-pretrade-b"
+    },
+    {
+      "id": "c-sched-pretrade-ba",
+      "name": "按账户 ID 分片",
+      "direction": "outgoing",
+      "originId": "a-cqrs-b",
+      "targetId": "a-pretrade"
+    },
+    {
+      "id": "c-waf-lb-b",
+      "name": "转发",
+      "direction": "outgoing",
+      "originId": "a-waf",
+      "targetId": "a-lb-b"
+    }
+  ],
+  "tagGroups": [
+    {
+      "id": "tg-status",
+      "name": "状态",
+      "icon": "tag"
+    }
+  ],
+  "tags": [
+    {
+      "id": "t-draft",
+      "name": "草稿",
+      "color": "gray",
+      "groupId": "tg-status"
+    },
+    {
+      "id": "t-review",
+      "name": "评审中",
+      "color": "amber",
+      "groupId": "tg-status"
+    },
+    {
+      "id": "t-live",
+      "name": "已上线",
+      "color": "green",
+      "groupId": "tg-status"
+    }
+  ]
+}
