@@ -128,17 +128,17 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
   <section id="overview">
     <div class="eyebrow">01 · 系统概览</div>
     <h1>系统概览</h1>
-    <p class="lede">多活高可用 CEX 交易系统面向不同区域提供服务：用户请求由云厂商 GTM 依据流量路由策略调度到不同数据中心的 CEX 集群，跨 DC < 100km Raft HA，同数据中心内服务本地 HA 复制。用户面流量（客户端与 OpenAPI）经 GTM DNS 层的 CDN、DDOS 防护与 WAF 过滤后进入 LB 集群（无状态，注册到 GTM）；控制面（八个运营 UI 与 MPC 审批 App）经 VPN 通道一、监控与治理面（集群监控 / 治理 UI）经 VPN 通道二接入。nginx 网关集群负责流量控制、业务请求路由与限流，将请求直接转发至服务集群。服务集群分四类：**内核服务**（18 项：预交易集群（资金冻结预留，冻结与订单受理原子化；主 + 多从、半同步复制）、OMS & 撮合引擎集群（现货/永续/期权/预测四条产品线，主 + 多从、半同步复制）、风控监测引擎集群（标记价/成交/资金费/转账事件驱动）与风控治理服务集群（强平/保险/ADL；两者均主 + 多从、半同步复制，含强平状态机）、清算集群（持仓簿/保证金核算/现货内部结算）与结算集群（衍生品结算：定期资金费率、到期期权交割）、行情引擎集群（按 Symbol 分片、主 + 多从、半同步复制）、充提币服务集群（提现请求、充值扫链、地址白名单、签名编排）、C2C/P2P 交易服务集群、用户资产核算服务集群、AI 交易集群（AI 推理 · 账户委托交易）、钱包服务集群（内含钱包&钱包风控、MPC 签名网关、MPC Actor、KYT、KMS/HSM 密钥管理子系统）与指数价格服务集群）、**边缘服务**（9 项无状态：用户管理服务集群、鉴权 AUTH 集群、交易调度网关集群（按账户 ID 分片调度至主预交易节点；预交易集群向其注册主从 IP，双 DC 均可调度）、用户消息服务集群、KYC 服务集群、活动服务集群、开放平台 API Key 管理服务集群与数据读取管线子组（行情发布/订阅网关 + 数据读取集群））、**控制面服务**（11 项：运营配置（含风控引擎 · 费率）、持仓锁定、红包、IEO、空投、优惠券、审计日志服务、监管报表服务、定时调度服务、资金对账服务与配置中心）、**监控与治理面**（2 项：监控与治理集群——指标 / 健康监控，主从故障切换由共识算法自动完成；撮合回放服务集群——基于列式数据中心回放撮合）；无状态 / 有状态以配色区分；Aeron 消息队列用于服务集群内部服务间通信。数据层集群：Aeron 消息、Redis 缓存、行情数据中心、数据归档、ES（订单/成交/流水/应用日志）、列式数据中心（回归测试行情）、SQL（Redis XStream 复制入库）、对象存储与时序数据库。外部系统连接器：公链 RPC、KYT 提供商、第三方 KYC 提供商、第三方钱包代理、法币通道代理与指数价格数据源。</p>
+    <p class="lede">多活高可用 CEX 交易系统面向不同区域提供服务：用户请求由云厂商 GTM 依据流量路由策略调度到不同数据中心的 CEX 集群，跨 DC < 100km Raft HA，同数据中心内服务本地 HA 复制。用户面流量（客户端与 OpenAPI）经 GTM DNS 层的 CDN、DDOS 防护与 WAF 过滤后进入 LB 集群（无状态，注册到 GTM）；控制面（八个运营 UI 与 MPC 审批 App）经 VPN 通道一、监控与治理面（集群监控 / 治理 UI）经 VPN 通道二接入。nginx 网关集群负责流量控制、业务请求路由与限流，将请求直接转发至服务集群。服务集群分四类：**内核服务（有状态）**（22 项：实时热备集群虚拟组（预交易集群（资金冻结预留，冻结与订单受理原子化）、OMS & 撮合引擎集群（现货/永续/期权/预测四条产品线）、风控监测引擎集群（标记价/成交/资金费/转账事件驱动）与风控治理服务集群（强平/保险/ADL，含强平状态机）、行情引擎集群（按 Symbol 分片）——均主 + 多从，DC 内仲裁同步复制、跨 DC 半同步复制）、弱状态服务集群（清算集群（持仓簿/保证金核算/现货内部结算）与结算集群（衍生品结算：定期资金费率、到期期权交割）、充提币服务集群（提现请求、充值扫链、地址白名单、签名编排）、C2C/P2P 交易服务集群、用户资产核算服务集群、AI 交易集群（AI 推理 · 账户委托交易）与指数价格服务集群——快照 + 日志重放 · 事件序号保证幂等恢复）、钱包服务集群（内含钱包&钱包风控、MPC 签名网关、MPC Actor、KYT、KMS/HSM 密钥管理子系统）与数据写入、快照与投影层（账本集群（账本数据单一事实源）、持仓/保证金集群（持仓/保证金数据单一事实源）、数据归档集群（历史数据归档，写入对象存储）与 ES 数据集群（订单/成交/流水查询、应用日志聚合）——事件序号保证幂等）、**边缘服务**（9 项无状态：用户管理集群、鉴权集群、交易调度集群（按账户 ID 分片调度至主预交易节点；预交易集群向其注册主从 IP，双 DC 均可调度）、用户消息集群、KYC 集群、活动服务集群、Open API Key 集群与数据读取管线子组（行情发布/订阅集群 + 数据读取集群））、**控制面服务**（11 项：运营配置（含风控引擎 · 费率）、持仓锁定、红包、IEO、空投、优惠券、审计日志服务、监管报表服务、定时调度服务、资金对账服务与配置中心）、**监控与治理面**（2 项：监控与治理集群——指标 / 健康监控，主从故障切换由共识算法自动完成；撮合回放服务集群——基于列式数据 Raft 集群回放撮合）；无状态 / 有状态以配色区分；Aeron Raft 集群（分布式消息总线）用于服务集群内部服务间通信。数据层集群：Aeron Raft 集群、Redpanda Raft 集群（高性能 Kafka 分布式消息队列）、Redis 集群、行情数据中心、列式数据 Raft 集群（行情回归测试）、SQL Raft 集群（上→下投影 · 下→上恢复）、对象存储 Raft 集群与时间序列 Raft 集群。外部系统连接器：公链 RPC、KYT 提供商、第三方 KYC 提供商、第三方钱包代理、法币通道代理与指数价格数据源。</p>
     <div class="stats">
-      <div class="stat"><b>155</b> 个模型对象</div>
-      <div class="stat"><b>35</b> 条连接</div>
+      <div class="stat"><b>167</b> 个模型对象</div>
+      <div class="stat"><b>30</b> 条连接</div>
       <div class="stat"><b>2</b> 个数据中心</div>
       <div class="stat"><b>1</b> 个 GTM 层</div>
-      <div class="stat"><b>36</b> 个内核服务（双 DC）</div>
+      <div class="stat"><b>44</b> 个内核服务（双 DC）</div>
     </div>
 
     <figure class="canvas-scroll" style="margin:20px 0 0">
-      <svg viewBox="0 0 3260 1920" role="img" aria-label="多活高可用 CEX 交易系统概览图：客户端与 OpenAPI 经 GTM DNS 层按流量路由策略调度（CDN、DDOS 防护、WAF）进入数据中心 A 的 LB 集群（无状态，注册到 GTM），经 nginx 网关转发至服务集群；服务集群分内核服务（17 项：预交易集群（资金冻结预留、主+多从半同步）、OMS 撮合引擎集群（现货/永续/期权/预测，主+多从半同步）、风控监测（标记价/成交/资金费/转账事件驱动）与治理、清算集群与结算集群、行情引擎集群（按 Symbol 分片、主+多从、半同步）、C2C、用户资产核算、AI 交易集群（AI 推理/账户委托）、钱包服务集群（含风控/MPC/KYT/KMS）、指数价格服务）、边缘服务（用户管理、鉴权 JWT、交易调度网关、用户消息、KYC、开放平台 API Key 管理、数据读取管线）、控制面服务（11 项：运营配置（风控引擎·费率）、持仓锁定、红包、IEO、空投、优惠券、审计日志、监管报表、定时调度、资金对账、配置中心）与监控治理面（监控与治理集群：指标/健康监控；主从故障切换由共识算法自动完成）；无状态与有状态服务以不同颜色区分；Aeron 消息队列用于服务集群内部服务间通信；数据层含 Aeron 消息、Redis 缓存、行情数据中心、数据归档、ES、列式数据中心、SQL、对象存储与时序数据库；数据中心 B 与 A 同构、内容一致（已完整渲染），经 cross DC (100km) Raft 共识复制实现容灾 HA；运营 UI 经 VPN 通道一、集群监控治理 UI 经 VPN 通道二接入；外部系统连接器含公链 RPC、KYT 提供商、第三方 KYC 提供商、第三方钱包代理与法币通道代理。">
+      <svg viewBox="0 0 3260 2030" role="img" aria-label="多活高可用 CEX 交易系统概览图：客户端与 OpenAPI 经 GTM DNS 层按流量路由策略调度（CDN、DDOS 防护、WAF）进入数据中心 A 的 LB 集群（无状态，注册到 GTM），经 nginx 网关转发至服务集群；服务集群分内核服务（有状态）（22 项：实时热备集群虚拟组（预交易集群（资金冻结预留）、OMS 撮合引擎集群（现货/永续/期权/预测）、风控监测（标记价/成交/资金费/转账事件驱动）与治理、行情引擎集群（按 Symbol 分片）——均主+多从、DC 内仲裁同步、跨 DC 半同步复制）、弱状态服务集群（清算集群与结算集群、充提币、C2C、用户资产核算、AI 交易集群与指数价格服务——快照 + 日志重放 · 事件序号保证幂等恢复）、钱包服务集群（含风控/MPC/KYT/KMS）、数据写入、快照与投影层（账本集群与持仓/保证金集群（单一事实源）、数据归档集群与 ES 数据集群——事件序号保证幂等））、边缘服务（用户管理、鉴权、交易调度、用户消息、KYC、Open API Key、数据读取管线）、控制面服务（11 项：运营配置（风控引擎·费率）、持仓锁定、红包、IEO、空投、优惠券、审计日志、监管报表、定时调度、资金对账、配置中心）与监控治理面（监控与治理集群：指标/健康监控；主从故障切换由共识算法自动完成）；无状态与有状态服务以不同颜色区分；Aeron Raft 集群（分布式消息总线）用于服务集群内部服务间通信；数据层含 Aeron Raft 集群、Redpanda Raft 集群、Redis 集群、行情数据中心、列式数据 Raft 集群、SQL Raft 集群、对象存储 Raft 集群与时间序列 Raft 集群；数据中心 B 与 A 同构、内容一致（已完整渲染），经 cross DC (100km) Raft 共识复制实现容灾 HA；运营 UI 经 VPN 通道一、集群监控治理 UI 经 VPN 通道二接入；外部系统连接器含公链 RPC、KYT 提供商、第三方 KYC 提供商、第三方钱包代理与法币通道代理。">
         <defs>
           <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
             <circle cx="1.4" cy="1.4" r="1.4" fill="var(--dot)"/>
@@ -148,8 +148,8 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
           </marker>
         </defs>
 
-        <rect x="0" y="0" width="3260" height="1920" fill="var(--canvas)"/>
-        <rect x="0" y="0" width="3260" height="1920" fill="url(#dots)"/>
+        <rect x="0" y="0" width="3260" height="2030" fill="var(--canvas)"/>
+        <rect x="0" y="0" width="3260" height="2030" fill="url(#dots)"/>
 
         <!-- ===== 云厂商 GTM（DNS 层） ===== -->
         <g class="obj" data-name="云厂商 GTM（DNS 层）" data-cat="ext" data-desc="云厂商全局流量管理：依据流量路由策略将用户请求调度至不同数据中心的 CEX 集群；CDN、DDOS 防护与 WAF 位于 GTM DNS 层，各数据中心 LB 集群注册到 GTM。">
@@ -312,7 +312,7 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
 
         <!-- ===== 数据中心 A ===== -->
         <g class="obj" data-name="数据中心 A · CEX 集群" data-cat="core" data-desc="CEX 集群所在数据中心：LB、网关、四类服务集群（内核/边缘/控制面/监控治理）与数据层；同 DC 内服务本地 HA 复制。">
-          <rect x="400" y="430" width="1140" height="1430" rx="12" fill="none" stroke="var(--c-core)" stroke-width="1.6" stroke-dasharray="10 7" opacity="0.55"/>
+          <rect x="400" y="430" width="1140" height="1530" rx="12" fill="none" stroke="var(--c-core)" stroke-width="1.6" stroke-dasharray="10 7" opacity="0.55"/>
         </g>
         <rect x="404" y="416" width="260" height="30" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="1.4"/>
         <text x="534" y="436" text-anchor="middle" font-size="16" font-weight="700" fill="var(--c-core)">数据中心 A · CEX 集群</text>
@@ -331,110 +331,148 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
 
         <!-- ===== 服务集群 ===== -->
         <g class="obj" data-name="服务集群" data-cat="core" data-desc="交易系统服务集群：内核服务、边缘服务、控制面服务与监控治理服务；无状态与有状态服务以不同颜色区分。">
-          <rect x="420" y="580" width="1100" height="980" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+          <rect x="420" y="580" width="1100" height="1136" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
         <circle cx="437" cy="604" r="4" fill="var(--c-core)"/>
         <text x="448" y="609" font-size="16" font-weight="700" fill="var(--muted)">服务集群</text>
 
         <!-- 内核服务 -->
-        <g class="obj" data-name="内核服务" data-cat="core" data-desc="内核服务：交易所核心引擎。">
-          <rect x="440" y="748" width="1060" height="426" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        <g class="obj" data-name="内核服务（有状态）" data-cat="core" data-desc="内核服务：交易所核心引擎。">
+          <rect x="440" y="748" width="1060" height="598" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="457" cy="772" r="4" fill="var(--c-core)"/>
-        <text x="468" y="777" font-size="16" font-weight="700" fill="var(--muted)">内核服务</text>
 
-        <g class="obj" data-name="预交易集群" data-cat="core" data-desc="预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。主从节点 IP 注册至交易调度网关。">
+        <!-- 实时热备集群（虚拟组） -->
+        <g class="obj" data-name="实时热备集群（主-多从 · DC 内同步复制 · 跨 DC 半同步复制）" data-cat="core" data-desc="实时热备集群（内核服务虚拟组）：预交易集群、OMS & 撮合引擎集群、风控监测引擎集群、风控治理服务集群与行情引擎集群（均主 + 多从）；DC 内主从仲裁同步复制实现实时热备，跨 DC 半同步复制实现跨 DC HA。">
+          <rect x="440" y="760" width="1054" height="174" rx="12" fill="color-mix(in srgb, var(--c-core) 10%, var(--canvas))" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="457" cy="779" r="3.5" fill="var(--c-core)"/>
+        <text x="468" y="783" font-size="13" font-weight="700" fill="var(--muted)">实时热备集群（主-多从 · DC 内同步复制 · 跨 DC 半同步复制）</text>
+
+        <g class="obj" data-name="预交易集群" data-cat="core" data-desc="预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。主从节点 IP 注册至交易调度集群。">
           <rect x="448" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
           <text x="573" y="817" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">预交易集群</text>
-          <text x="573" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">资金冻结预留 · 主 + 多从 · 半同步复制</text>
+          <text x="573" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">资金冻结预留</text>
         </g>
         <g class="obj" data-name="OMS & 撮合引擎集群" data-cat="core" data-desc="OMS & 撮合引擎集群：覆盖现货、永续合约、期权与预测四条产品线；每个产品线主节点 + 多从节点，半同步复制；订单簿状态管理与撮合执行（有状态）。">
           <rect x="712" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
           <text x="837" y="817" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">OMS & 撮合引擎集群</text>
-          <text x="837" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">现货/永续/期权/预测 · 主+多从半同步复制</text>
-        </g>
-        <g class="obj" data-name="清算集群" data-cat="core" data-desc="清算集群：持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）（有状态）。">
-          <rect x="976" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="1101" y="817" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">清算集群</text>
-          <text x="1101" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">持仓簿 · 保证金 · 现货结算</text>
+          <text x="837" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">现货/永续/期权/预测</text>
         </g>
         <g class="obj" data-name="风控监测引擎集群" data-cat="core" data-desc="风控监测引擎集群（事件驱动，非轮询）：主节点 + 多从节点，半同步复制（包含强平状态机）；由标记价格跳动、成交、资金费率与转账事件触发，跟踪 Top N 强平、保险与 ADL 候选（有状态）。">
-          <rect x="1240" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="1365" y="817" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">风控监测引擎集群</text>
-          <text x="1365" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">标记价/成交/资金费/转账 · 主+多从半同步</text>
+          <rect x="976" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1101" y="817" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">风控监测引擎集群</text>
+          <text x="1101" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">标记价/成交/资金费/转账</text>
         </g>
         <g class="obj" data-name="风控治理服务集群" data-cat="core" data-desc="风控治理服务集群：主节点 + 多从节点，半同步复制（包含强平状态机）；执行强制平仓、保险与 ADL 自动减仓（有状态）。">
-          <rect x="448" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="573" y="893" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">风控治理服务集群</text>
-          <text x="573" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">执行强平/保险/ADL · 主+多从半同步</text>
-        </g>
-        <g class="obj" data-name="结算集群" data-cat="core" data-desc="结算集群：衍生品结算——定期触发的资金费率收取与到期事件触发的期权交割结算（有状态）。">
-          <rect x="712" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="837" y="893" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">结算集群</text>
-          <text x="837" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">资金费率（定期）· 期权交割（到期）</text>
+          <rect x="1240" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1365" y="817" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">风控治理服务集群</text>
+          <text x="1365" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">执行强平/保险/ADL</text>
         </g>
         <g class="obj" data-name="行情引擎集群" data-cat="core" data-desc="行情引擎集群：按交易对（Symbol）分片部署；聚合行情数据并分片写入 Redis 行情数据中心，主节点 + 多从节点半同步复制备份（有状态）。">
-          <rect x="976" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="1101" y="893" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">行情引擎集群</text>
-          <text x="1101" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">按 Symbol 分片 · 主 + 多从半同步复制</text>
+          <rect x="448" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="573" y="893" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">行情引擎集群</text>
+          <text x="573" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">按 Symbol 分片</text>
+        </g>
+        <!-- 弱状态服务集群（虚拟组） -->
+        <g class="obj" data-name="弱状态服务集群（快照 + 日志重放 · 事件序号保证幂等）" data-cat="infra" data-desc="弱状态服务集群（内核服务虚拟组）：清算集群、结算集群、充提币服务集群、用户资产核算服务集群、指数价格服务集群、C2C/P2P 交易服务集群与 AI 交易集群（弱状态）。">
+          <rect x="440" y="944" width="1060" height="178" rx="12" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="457" cy="958" r="4" fill="var(--c-infra)"/>
+        <text x="468" y="962" font-size="13" font-weight="700" fill="var(--muted)">弱状态服务集群（快照 + 日志重放 · 事件序号保证幂等）</text>
+
+        <g class="obj" data-name="清算集群" data-cat="core" data-desc="清算集群：持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）（有状态）。">
+          <rect x="448" y="976" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="573" y="1003" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">清算集群</text>
+          <text x="573" y="1024" text-anchor="middle" font-size="12" fill="var(--muted)">持仓簿 · 保证金 · 现货结算</text>
+        </g>
+        <g class="obj" data-name="结算集群" data-cat="core" data-desc="结算集群：衍生品结算——定期触发的资金费率收取与到期事件触发的期权交割结算（有状态）。">
+          <rect x="712" y="976" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="837" y="1003" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">结算集群</text>
+          <text x="837" y="1024" text-anchor="middle" font-size="12" fill="var(--muted)">资金费率（定期）· 期权交割（到期）</text>
         </g>
         <g class="obj" data-name="充提币服务集群" data-cat="core" data-desc="充提币服务集群：提现请求管理、充值扫链监控、提币地址白名单与签名编排（无状态）。">
-          <rect x="1240" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="1365" y="893" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">充提币服务集群</text>
-          <text x="1365" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">提现 · 充值扫链</text>
+          <rect x="976" y="976" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1101" y="1003" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">充提币服务集群</text>
+          <text x="1101" y="1024" text-anchor="middle" font-size="12" fill="var(--muted)">提现 · 充值扫链</text>
         </g>
         <g class="obj" data-name="用户资产核算服务集群" data-cat="core" data-desc="用户资产核算服务集群：法币与加密资产归集与内部账本（有状态）。">
-          <rect x="448" y="942" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="573" y="969" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">用户资产核算服务集群</text>
-          <text x="573" y="990" text-anchor="middle" font-size="12" fill="var(--muted)">法币/加密归集 · 内部账本</text>
+          <rect x="448" y="1052" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="573" y="1079" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">用户资产核算服务集群</text>
+          <text x="573" y="1100" text-anchor="middle" font-size="12" fill="var(--muted)">法币/加密归集 · 内部账本</text>
         </g>
         <g class="obj" data-name="指数价格服务集群" data-cat="core" data-desc="指数价格服务（预言机）：聚合外部行情数据计算标记价格，供资金费率、期权交割与强平使用（有状态）。">
-          <rect x="712" y="942" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="837" y="969" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">指数价格服务集群</text>
-          <text x="837" y="990" text-anchor="middle" font-size="12" fill="var(--muted)">标记价格 · 预言机</text>
+          <rect x="712" y="1052" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="837" y="1079" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">指数价格服务集群</text>
+          <text x="837" y="1100" text-anchor="middle" font-size="12" fill="var(--muted)">标记价格 · 预言机</text>
         </g>
         <g class="obj" data-name="C2C/P2P 交易服务集群" data-cat="core" data-desc="OTC 询价（RFQ）交易服务；状态存储于 Redis 集群，最终同步至 SQL 数据库（有状态）。">
-          <rect x="976" y="942" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="1101" y="969" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">C2C/P2P 交易服务集群</text>
-          <text x="1101" y="990" text-anchor="middle" font-size="12" fill="var(--muted)">OTC 询价 · 状态存 Redis</text>
+          <rect x="976" y="1052" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1101" y="1079" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">C2C/P2P 交易服务集群</text>
+          <text x="1101" y="1100" text-anchor="middle" font-size="12" fill="var(--muted)">OTC 询价 · 状态存 Redis</text>
         </g>
         <g class="obj" data-name="AI 交易集群" data-cat="core" data-desc="AI 交易集群：在实时行情与订单簿之上运行 AI 交易员推理；用户将账户委托给 AI 交易集群，支付费用由 CEX 代为交易以获取更高收益（有状态）。">
-          <rect x="1240" y="942" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="1365" y="969" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">AI 交易集群</text>
-          <text x="1365" y="990" text-anchor="middle" font-size="12" fill="var(--muted)">AI 推理 · 账户委托交易</text>
+          <rect x="1240" y="1052" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1365" y="1079" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">AI 交易集群</text>
+          <text x="1365" y="1100" text-anchor="middle" font-size="12" fill="var(--muted)">AI 推理 · 账户委托交易</text>
         </g>
-        <g class="obj" data-name="钱包服务集群" data-cat="core" data-desc="钱包服务集群：Web3 区块链交易处理；内含钱包风控、MPC 签名网关、MPC Actor（SGX）、KYT 与 KMS/HSM 密钥管理等子系统（有状态）。">
-          <rect x="440" y="1018" width="1060" height="138" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        <!-- 数据写入、快照与投影层（事件序号保证幂等）（虚拟组） -->
+        <g class="obj" data-name="数据写入、快照与投影层（事件序号保证幂等）" data-cat="md" data-desc="数据写入、快照与投影层（内核服务虚拟组）：账本集群与持仓/保证金集群为账本、持仓/保证金数据的单一事实源（写入侧）；数据归档集群与 ES 数据集群为历史归档与查询投影（投影侧）。">
+          <rect x="440" y="1132" width="1060" height="102" rx="12" fill="color-mix(in srgb, var(--c-md) 10%, var(--canvas))" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="457" cy="1042" r="4" fill="var(--c-core)"/>
-        <text x="468" y="1047" font-size="16" font-weight="700" fill="var(--muted)">钱包服务集群</text>
+        <circle cx="457" cy="1146" r="4" fill="var(--c-md)"/>
+        <text x="468" y="1150" font-size="13" font-weight="700" fill="var(--muted)">数据写入、快照与投影层（事件序号保证幂等）</text>
+
+        <g class="obj" data-name="账本集群" data-cat="core" data-desc="账本集群：账本数据的单一事实源，所有账本读写操作经其完成（有状态）。">
+          <rect x="448" y="1164" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="573" y="1191" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">账本集群</text>
+          <text x="573" y="1212" text-anchor="middle" font-size="12" fill="var(--muted)">账本数据单一事实源</text>
+        </g>
+        <g class="obj" data-name="持仓/保证金集群" data-cat="core" data-desc="持仓/保证金集群：持仓与保证金数据的单一事实源，所有持仓/保证金读写操作经其完成（有状态）。">
+          <rect x="712" y="1164" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="837" y="1191" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">持仓/保证金集群</text>
+          <text x="837" y="1212" text-anchor="middle" font-size="12" fill="var(--muted)">持仓/保证金单一事实源</text>
+        </g>
+        <g class="obj" data-name="数据归档集群" data-cat="core" data-desc="数据归档集群：历史数据归档（有状态）。">
+          <rect x="976" y="1164" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1101" y="1191" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">数据归档集群</text>
+          <text x="1101" y="1212" text-anchor="middle" font-size="12" fill="var(--muted)">历史数据归档</text>
+        </g>
+        <g class="obj" data-name="ES 数据集群" data-cat="core" data-desc="Elasticsearch 数据服务：订单、成交、资金流水等数据查询与应用日志聚合（有状态）。">
+          <rect x="1240" y="1164" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1365" y="1191" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">ES 数据集群</text>
+          <text x="1365" y="1212" text-anchor="middle" font-size="12" fill="var(--muted)">订单·成交·流水 · 应用日志</text>
+        </g>
+        <g class="obj" data-name="钱包服务集群" data-cat="acc" data-desc="钱包服务集群：Web3 区块链交易处理；内含钱包&钱包风控、MPC 签名网关、MPC Actor（SGX）、KYT 与 KMS/HSM 密钥管理等子系统（有状态）。">
+          <rect x="440" y="1244" width="1060" height="94" rx="12" fill="color-mix(in srgb, var(--c-acc) 10%, var(--canvas))" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="457" cy="1258" r="4" fill="var(--c-acc)"/>
+        <text x="468" y="1262" font-size="16" font-weight="700" fill="var(--muted)">钱包服务集群</text>
 
         <g class="obj" data-name="钱包&钱包风控服务集群" data-cat="acc" data-desc="钱包&钱包风控服务：加密资产转账处理；监管合规与反洗钱检查（有状态）。">
-          <rect x="452" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="552" y="1088" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">钱包&钱包风控服务集群</text>
-          <text x="552" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">加密资产转账 · 监管合规 · 反洗钱</text>
+          <rect x="452" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="552" y="1296" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">钱包&钱包风控服务集群</text>
+          <text x="552" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">加密资产转账 · 监管合规 · 反洗钱</text>
         </g>
         <g class="obj" data-name="MPC 签名网关集群" data-cat="acc" data-desc="MPC 签名网关：签名请求路由与编排（有状态）。">
-          <rect x="662" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="762" y="1088" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">MPC 签名网关集群</text>
-          <text x="762" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">签名路由与编排</text>
+          <rect x="662" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="762" y="1296" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">MPC 签名网关集群</text>
+          <text x="762" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">签名路由与编排</text>
         </g>
         <g class="obj" data-name="MPC Actor（SGX）签名服务集群" data-cat="acc" data-desc="MPC Actor（SGX）签名服务：SGX 可信执行环境内的 MPC 多方签名（有状态）。">
-          <rect x="872" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="972" y="1088" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">MPC Actor（SGX）签名服务集群</text>
-          <text x="972" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">SGX 多方签名</text>
+          <rect x="872" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="972" y="1296" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">MPC Actor（SGX）签名服务集群</text>
+          <text x="972" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">SGX 多方签名</text>
         </g>
         <g class="obj" data-name="KYT（Elliptic）服务集群" data-cat="acc" data-desc="KYT（Elliptic）：链上交易合规分析（有状态）。">
-          <rect x="1082" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="1182" y="1088" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">KYT（Elliptic）服务集群</text>
-          <text x="1182" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">链上合规分析</text>
+          <rect x="1082" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="1182" y="1296" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">KYT（Elliptic）服务集群</text>
+          <text x="1182" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">链上合规分析</text>
         </g>
         <g class="obj" data-name="KMS/HSM 密钥管理服务集群" data-cat="acc" data-desc="KMS/HSM 密钥管理服务：JWT 签名密钥、API Key 等系统密钥托管（有状态）。">
-          <rect x="1292" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="1392" y="1088" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">KMS/HSM 密钥管理服务集群</text>
-          <text x="1392" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">系统密钥托管</text>
+          <rect x="1292" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="1392" y="1296" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">KMS/HSM 密钥管理服务集群</text>
+          <text x="1392" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">系统密钥托管</text>
         </g>
-
 
         <!-- 边缘服务（无状态） -->
         <g class="obj" data-name="边缘服务" data-cat="gw" data-desc="边缘服务（无状态）：面向用户的接入层服务，含交易调度网关、开放平台 API Key 管理、活动服务与数据读取管线。">
@@ -443,189 +481,188 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
         <circle cx="457" cy="644" r="4" fill="var(--c-gw)"/>
         <text x="468" y="649" font-size="16" font-weight="700" fill="var(--muted)">边缘服务（无状态）</text>
 
-        <g class="obj" data-name="数据读取管线" data-cat="md" data-desc="数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅网关集群，统一承载数据读取流水线。">
+        <g class="obj" data-name="数据读取管线" data-cat="md" data-desc="数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅集群，统一承载数据读取流水线。">
           <rect x="1285" y="648" width="215" height="82" rx="10" fill="none" stroke="var(--c-md)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
         <circle cx="1293" cy="658" r="3" fill="var(--c-md)"/>
         <text x="1303" y="662" font-size="11" font-weight="700" fill="var(--c-md)">数据读取管线</text>
 
-        <g class="obj" data-name="用户管理服务集群" data-cat="core" data-desc="用户管理服务（无状态）。">
+        <g class="obj" data-name="用户管理集群" data-cat="core" data-desc="用户管理集群（无状态）。">
           <rect x="448" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
-          <text x="503.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">用户管理服务集群</text>
-          <text x="503.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">账户资料</text>
+          <text x="503.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">用户管理集群</text>
+          <text x="503.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">账户资料</text>
         </g>
-        <g class="obj" data-name="鉴权 AUTH 集群" data-cat="core" data-desc="基于 JWT 的登录鉴权（无状态）。">
+        <g class="obj" data-name="鉴权集群" data-cat="core" data-desc="基于 JWT 的登录鉴权（无状态）。">
           <rect x="563" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
-          <text x="618.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">鉴权 AUTH 集群</text>
-          <text x="618.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">JWT 登录</text>
+          <text x="618.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">鉴权集群</text>
+          <text x="618.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">JWT 登录</text>
         </g>
-        <g class="obj" data-name="交易调度网关集群" data-cat="gw" data-desc="交易调度网关集群：感知预交易集群的主节点（预交易集群向网关注册主从节点 IP）；交易命令按账户 ID 分片路由至下游预交易(主节点)（双数据中心均可调度转发）（无状态）。">
+        <g class="obj" data-name="交易调度集群" data-cat="gw" data-desc="交易调度集群：感知预交易集群的主节点（预交易集群向其注册主从节点 IP）；交易命令按账户 ID 分片路由至下游主预交易节点（双数据中心均可调度转发）（无状态）。">
           <rect x="678" y="662" width="128" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-gw)" stroke-width="2.2"/>
-          <text x="742.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">交易调度网关集群</text>
-          <text x="742.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">命令 → 预交易(主节点)</text>
+          <text x="742.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">交易调度集群</text>
+          <text x="742.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">命令 → 主预交易节点</text>
         </g>
-        <g class="obj" data-name="用户消息服务集群" data-cat="acc" data-desc="邮件、短信与 App 推送等用户消息触达（无状态）。">
+        <g class="obj" data-name="用户消息集群" data-cat="acc" data-desc="邮件、短信与 App 推送等用户消息触达（无状态）。">
           <rect x="811" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="866.0" y="684" text-anchor="middle" font-size="10" font-weight="600" fill="var(--fg)">用户消息服务集群</text>
-          <text x="866.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">邮件 · 短信 · 推送</text>
+          <text x="866.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">用户消息集群</text>
+          <text x="866.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">邮件 · 短信 · 推送</text>
         </g>
-        <g class="obj" data-name="KYC 服务集群" data-cat="acc" data-desc="用户实名认证（无状态）。">
+        <g class="obj" data-name="KYC 集群" data-cat="acc" data-desc="用户实名认证（无状态）。">
           <rect x="926" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="981.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">KYC 服务集群</text>
-          <text x="981.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">实名认证</text>
+          <text x="981.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">KYC 集群</text>
+          <text x="981.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">实名认证</text>
         </g>
         <g class="obj" data-name="活动服务集群" data-cat="acc" data-desc="活动服务集群：用户面活动执行——红包领取、IEO 申购、空投申领、优惠券使用（无状态）。">
           <rect x="1041" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1096.0" y="684" text-anchor="middle" font-size="10" font-weight="600" fill="var(--fg)">活动服务集群</text>
-          <text x="1096.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">红包领取 · IEO 申购</text>
+          <text x="1096.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">活动服务集群</text>
+          <text x="1096.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">红包领取 · IEO 申购</text>
         </g>
-        <g class="obj" data-name="开放平台 API Key 集群" data-cat="acc" data-desc="开放平台 API Key 管理服务：API Key 签发、签名校验与限流（无状态）。">
+        <g class="obj" data-name="Open API Key 集群" data-cat="acc" data-desc="Open API Key 集群：API Key 签发、签名校验与限流（无状态）。">
           <rect x="1156" y="662" width="132" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1222.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">开放平台 API Key 集群</text>
-          <text x="1222.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">管理 · 签名校验</text>
+          <text x="1222.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Open API Key 集群</text>
+          <text x="1222.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">管理 · 签名校验</text>
         </g>
-        <g class="obj" data-name="行情发布/订阅网关集群" data-cat="md" data-desc="行情发布/订阅网关（无状态）。">
-          <rect x="1293" y="662" width="100" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
-          <text x="1343.0" y="684" text-anchor="middle" font-size="10" font-weight="600" fill="var(--fg)">行情发布/订阅网关集群</text>
-          <text x="1343.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">发布 · 订阅</text>
+        <g class="obj" data-name="行情发布/订阅集群" data-cat="md" data-desc="行情发布/订阅集群（无状态）。">
+          <rect x="1293" y="662" width="104" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="1343.0" y="684" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">行情发布/订阅集群</text>
+          <text x="1343.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">发布 · 订阅</text>
         </g>
         <g class="obj" data-name="数据读取集群" data-cat="md" data-desc="数据读取集群：统一数据读取入口，所有数据查询请求（行情、订单、成交、资产等）经其读取数据层（无状态）。">
-          <rect x="1398" y="662" width="100" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
-          <text x="1448.0" y="684" text-anchor="middle" font-size="10" font-weight="600" fill="var(--fg)">数据读取集群</text>
-          <text x="1448.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">统一数据读取入口</text>
+          <rect x="1402" y="662" width="96" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="1450.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">数据读取集群</text>
+          <text x="1450.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">统一数据读取入口</text>
         </g>
 
         <!-- 控制面服务 -->
         <g class="obj" data-name="控制面服务" data-cat="acc" data-desc="控制面服务（无状态）：运营配置（风控引擎 · 费率）、持仓锁定、红包、IEO、空投、优惠券、审计日志服务、监管报表服务、定时调度服务、资金对账服务与配置中心。">
-          <rect x="440" y="1190" width="500" height="330" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+          <rect x="440" y="1356" width="500" height="330" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="457" cy="1214" r="4" fill="var(--c-acc)"/>
-        <text x="468" y="1219" font-size="16" font-weight="700" fill="var(--muted)">控制面服务</text>
+        <circle cx="457" cy="1380" r="4" fill="var(--c-acc)"/>
+        <text x="468" y="1385" font-size="16" font-weight="700" fill="var(--muted)">控制面服务</text>
 
         <g class="obj" data-name="运营配置（风控引擎 · 费率等）" data-cat="acc" data-desc="运营配置下发（风控引擎、费率等），由运营后台操作（无状态服务）。">
-          <rect x="449" y="1230" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="524" y="1255" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">运营配置</text>
-          <text x="524" y="1272" text-anchor="middle" font-size="11" fill="var(--muted)">（风控引擎 · 费率等）</text>
+          <rect x="449" y="1396" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="524" y="1421" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">运营配置</text>
+          <text x="524" y="1438" text-anchor="middle" font-size="11" fill="var(--muted)">（风控引擎 · 费率等）</text>
         </g>
         <g class="obj" data-name="持仓锁定" data-cat="acc" data-desc="持仓锁定（Position Locking）运营操作（无状态服务）。">
-          <rect x="609" y="1230" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="684" y="1260" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">持仓锁定</text>
+          <rect x="609" y="1396" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="684" y="1426" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">持仓锁定</text>
         </g>
         <g class="obj" data-name="红包" data-cat="acc" data-desc="红包活动运营（无状态服务）。">
-          <rect x="769" y="1230" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="844" y="1260" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">红包</text>
+          <rect x="769" y="1396" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="844" y="1426" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">红包</text>
         </g>
         <g class="obj" data-name="IEO" data-cat="acc" data-desc="交易所首次发行（IEO）运营（无状态服务）。">
-          <rect x="449" y="1304" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="524" y="1334" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">IEO</text>
+          <rect x="449" y="1470" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="524" y="1500" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">IEO</text>
         </g>
         <g class="obj" data-name="空投" data-cat="acc" data-desc="空投活动运营（无状态服务）。">
-          <rect x="609" y="1304" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="684" y="1334" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">空投</text>
+          <rect x="609" y="1470" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="684" y="1500" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">空投</text>
         </g>
         <g class="obj" data-name="优惠券" data-cat="acc" data-desc="优惠券活动运营（无状态服务）。">
-          <rect x="769" y="1304" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="844" y="1334" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">优惠券</text>
+          <rect x="769" y="1470" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="844" y="1500" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">优惠券</text>
         </g>
         <g class="obj" data-name="审计日志服务" data-cat="acc" data-desc="审计日志服务：操作留痕，写入对象存储（无状态）。">
-          <rect x="449" y="1378" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="524" y="1408" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">审计日志服务</text>
+          <rect x="449" y="1544" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="524" y="1574" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">审计日志服务</text>
         </g>
         <g class="obj" data-name="监管报表服务" data-cat="acc" data-desc="监管报表服务：监管报送（可疑交易报告等）（无状态）。">
-          <rect x="609" y="1378" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="684" y="1408" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">监管报表服务</text>
+          <rect x="609" y="1544" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="684" y="1574" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">监管报表服务</text>
         </g>
         <g class="obj" data-name="定时调度服务" data-cat="acc" data-desc="定时调度服务：统一定时任务调度（资金费结算、快照、活动开奖等）（无状态）。">
-          <rect x="769" y="1378" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="844" y="1408" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">定时调度服务</text>
+          <rect x="769" y="1544" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="844" y="1574" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">定时调度服务</text>
         </g>
         <g class="obj" data-name="资金对账服务" data-cat="acc" data-desc="资金对账服务：清算、钱包与法币通道之间的账实核对（无状态）。">
-          <rect x="449" y="1452" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="524" y="1482" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">资金对账服务</text>
+          <rect x="449" y="1618" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="524" y="1648" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">资金对账服务</text>
         </g>
         <g class="obj" data-name="配置中心" data-cat="acc" data-desc="配置中心：服务级动态配置下发（轻量服务）。">
-          <rect x="609" y="1452" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="684" y="1482" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">配置中心</text>
+          <rect x="609" y="1618" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="684" y="1648" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">配置中心</text>
         </g>
 
         <!-- 监控与治理面 -->
         <g class="obj" data-name="监控与治理面" data-cat="md" data-desc="监控与治理面（无状态）：监控与治理集群；主从故障切换由共识算法自动完成，无需人工操作。">
-          <rect x="960" y="1190" width="540" height="330" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+          <rect x="960" y="1356" width="540" height="330" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="977" cy="1214" r="4" fill="var(--c-md)"/>
-        <text x="988" y="1219" font-size="16" font-weight="700" fill="var(--muted)">监控与治理面</text>
+        <circle cx="977" cy="1380" r="4" fill="var(--c-md)"/>
+        <text x="988" y="1385" font-size="16" font-weight="700" fill="var(--muted)">监控与治理面</text>
 
         <g class="obj" data-name="监控与治理集群" data-cat="acc" data-desc="监控与治理集群：服务指标监控与服务健康监控（无状态）；主从故障切换由共识算法自动完成，无需人工操作。">
-          <rect x="976" y="1230" width="508" height="112" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1230" y="1270" text-anchor="middle" font-size="16" font-weight="600" fill="var(--fg)">监控与治理集群</text>
-          <text x="1230" y="1294" text-anchor="middle" font-size="12.5" fill="var(--muted)">指标监控 · 健康监控</text>
-          <text x="1230" y="1318" text-anchor="middle" font-size="12" fill="var(--muted)">主从故障切换：共识算法自动完成，无需人工操作</text>
-        </g>
-        <g class="obj" data-name="撮合回放服务集群" data-cat="acc" data-desc="撮合回放服务集群：基于列式数据中心的回归测试行情回放撮合流程（无状态）。">
           <rect x="976" y="1396" width="508" height="112" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1230" y="1436" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">撮合回放服务集群</text>
-          <text x="1230" y="1460" text-anchor="middle" font-size="12" fill="var(--muted)">基于列式数据中心回放撮合</text>
+          <text x="1230" y="1436" text-anchor="middle" font-size="16" font-weight="600" fill="var(--fg)">监控与治理集群</text>
+          <text x="1230" y="1460" text-anchor="middle" font-size="12.5" fill="var(--muted)">指标监控 · 健康监控</text>
+          <text x="1230" y="1484" text-anchor="middle" font-size="12" fill="var(--muted)">主从故障切换：共识算法自动完成，无需人工操作</text>
+        </g>
+        <g class="obj" data-name="撮合回放服务集群" data-cat="acc" data-desc="撮合回放服务集群：基于列式数据 Raft 集群的回归测试行情回放撮合流程（无状态）。">
+          <rect x="976" y="1562" width="508" height="112" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1230" y="1602" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">撮合回放服务集群</text>
+          <text x="1230" y="1626" text-anchor="middle" font-size="12" fill="var(--muted)">基于列式数据 Raft 集群回放撮合</text>
         </g>
 
         <!-- ===== 数据层集群 ===== -->
-        <g class="obj" data-name="数据层集群" data-cat="infra" data-desc="数据层集群：Aeron 消息、Redis 缓存、行情数据中心、数据归档、ES、列式数据中心、SQL、对象存储与时序数据库。">
-          <rect x="420" y="1620" width="1100" height="140" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        <g class="obj" data-name="数据层集群" data-cat="infra" data-desc="数据层集群：Aeron Raft 集群、Redpanda Raft 集群、Redis 集群、行情数据中心、列式数据 Raft 集群、SQL Raft 集群、对象存储 Raft 集群与时间序列 Raft 集群。">
+          <rect x="420" y="1746" width="1100" height="140" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="1316" cy="1644" r="4" fill="var(--c-infra)"/>
-        <text x="1327" y="1649" font-size="16" font-weight="700" fill="var(--muted)">数据层集群</text>
 
-        <g class="obj" data-name="Aeron 消息集群" data-cat="infra" data-desc="Aeron 分布式消息队列集群，服务集群内部服务间消息通信（有状态）。">
-          <rect x="440" y="1662" width="104" height="62" rx="8" fill="color-mix(in srgb, var(--c-infra) 12%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="492" y="1689" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Aeron 消息集群</text>
-          <text x="492" y="1710" text-anchor="middle" font-size="11.5" fill="var(--muted)">消息队列</text>
+        <g class="obj" data-name="Aeron Raft 集群" data-cat="infra" data-desc="Aeron Raft 集群：分布式消息总线，服务集群内部服务间消息通信（有状态）。">
+          <path class="cyl-body" d="M440,1788 L440,1850 A52,14 0 0 0 544,1850 L544,1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="492" cy="1788" rx="52" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="492" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Aeron Raft 集群</text>
+          <text x="492" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">分布式消息总线</text>
         </g>
-        <g class="obj" data-name="Redis 缓存集群" data-cat="infra" data-desc="Redis 缓存集群（有状态存储，多实例集群）。">
-          <path class="cyl-body" d="M558,1662 L558,1724 A52,14 0 0 0 662,1724 L662,1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="610" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="610" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Redis 缓存集群</text>
-          <text x="610" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">多实例集群</text>
+        <g class="obj" data-name="Redpanda Raft 集群" data-cat="infra" data-desc="Redpanda Raft 集群：高性能 Kafka 分布式消息队列（有状态存储）。">
+          <path class="cyl-body" d="M563,1788 L563,1850 A60,14 0 0 0 683,1850 L683,1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="623" cy="1788" rx="60" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="623" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Redpanda Raft 集群</text>
+          <text x="623" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">高性能 Kafka</text>
         </g>
-        <g class="obj" data-name="行情数据中心" data-cat="infra" data-desc="行情数据中心：Redis 集群分片，存储行情数据（有状态存储）。">
-          <path class="cyl-body" d="M676,1662 L676,1724 A52,14 0 0 0 780,1724 L780,1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="728" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="728" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">行情数据中心</text>
-          <text x="728" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">Redis 集群分片</text>
+        <g class="obj" data-name="Redpanda Raft 集群" data-cat="infra" data-desc="Redpanda Raft 集群：高性能 Kafka 分布式消息队列（有状态存储）。">
+          <path class="cyl-body" d="M1863 1788 L1863 1850 A60 14 0 0 0 1983 1850 L1983 1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="1923" cy="1788" rx="60" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="1923" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Redpanda Raft 集群</text>
+          <text x="1923" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">高性能 Kafka</text>
         </g>
-        <g class="obj" data-name="数据归档服务" data-cat="infra" data-desc="历史数据归档。">
-          <path class="cyl-body" d="M794,1662 L794,1724 A52,14 0 0 0 898,1724 L898,1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="846" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="846" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">数据归档服务</text>
-          <text x="846" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">历史数据</text>
+        <g class="obj" data-name="Redis 集群（主节点 + 备份）" data-cat="infra" data-desc="Redis 集群（主节点 + 备份）：有状态存储，多实例集群。">
+          <path class="cyl-body" d="M702,1788 L702,1850 A52,14 0 0 0 806,1850 L806,1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="754" cy="1788" rx="52" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="754" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Redis 集群</text>
+          <text x="754" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">主节点 + 备份</text>
         </g>
-        <g class="obj" data-name="ES 数据服务" data-cat="infra" data-desc="Elasticsearch 数据服务：订单、成交、资金流水等数据查询。">
-          <path class="cyl-body" d="M912,1662 L912,1724 A52,14 0 0 0 1016,1724 L1016,1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="964" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="964" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">ES 数据服务</text>
-          <text x="964" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">订单·成交·流水</text>
+        <g class="obj" data-name="行情数据中心" data-cat="infra" data-desc="行情数据中心：多 Redis 集群分片，存储行情数据（有状态存储）。">
+          <path class="cyl-body" d="M825,1788 L825,1850 A52,14 0 0 0 929,1850 L929,1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="877" cy="1788" rx="52" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="877" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">行情数据中心</text>
+          <text x="877" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">多 Redis 集群分片</text>
         </g>
-        <g class="obj" data-name="列式数据中心" data-cat="infra" data-desc="列式数据库，存储回归测试行情数据（有状态存储）。">
-          <path class="cyl-body" d="M1030,1662 L1030,1724 A52,14 0 0 0 1134,1724 L1134,1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="1082" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="1082" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">列式数据中心</text>
-          <text x="1082" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">回归测试行情</text>
+        <g class="obj" data-name="列式数据 Raft 集群" data-cat="infra" data-desc="列式数据 Raft 集群：存储行情回归测试数据（有状态存储）。">
+          <path class="cyl-body" d="M948,1788 L948,1850 A60,14 0 0 0 1068,1850 L1068,1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="1008" cy="1788" rx="60" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="1008" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">列式数据 Raft 集群</text>
+          <text x="1008" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">行情回归测试</text>
         </g>
-        <g class="obj" data-name="SQL 数据库集群" data-cat="infra" data-desc="SQL 关系数据库集群（有状态存储），由 Redis XStream 复制入库。">
-          <path class="cyl-body" d="M1148,1662 L1148,1724 A52,14 0 0 0 1252,1724 L1252,1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="1200" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="1200" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">SQL 数据库集群</text>
-          <text x="1200" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">XStream 复制</text>
+        <g class="obj" data-name="SQL Raft 集群" data-cat="infra" data-desc="SQL Raft 集群：上→下投影，下→上恢复（有状态存储）。">
+          <path class="cyl-body" d="M1087,1788 L1087,1850 A67,14 0 0 0 1221,1850 L1221,1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="1154" cy="1788" rx="67" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="1154" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">SQL Raft 集群</text>
+          <text x="1154" y="1837" text-anchor="middle" font-size="11" fill="var(--muted)">上→下投影 · 下→上恢复</text>
         </g>
-        <g class="obj" data-name="对象存储集群" data-cat="infra" data-desc="对象存储集群（有状态存储，归档与快照）。">
-          <path class="cyl-body" d="M1266,1662 L1266,1724 A52,14 0 0 0 1370,1724 L1370,1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="1318" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="1318" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">对象存储集群</text>
-          <text x="1318" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">归档与快照</text>
+        <g class="obj" data-name="对象存储 Raft 集群" data-cat="infra" data-desc="对象存储 Raft 集群（有状态存储，归档与快照）。">
+          <path class="cyl-body" d="M1240,1788 L1240,1850 A60,14 0 0 0 1360,1850 L1360,1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="1300" cy="1788" rx="60" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="1300" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">对象存储 Raft 集群</text>
+          <text x="1300" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">归档与快照</text>
         </g>
-        <g class="obj" data-name="时序数据库（指标）" data-cat="infra" data-desc="时序数据库（有状态存储，系统监控指标）。">
-          <path class="cyl-body" d="M1384,1662 L1384,1724 A52,14 0 0 0 1488,1724 L1488,1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="1436" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="1436" y="1692" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">时序数据库（指标）</text>
-          <text x="1436" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">系统监控指标</text>
+        <g class="obj" data-name="时间序列 Raft 集群" data-cat="infra" data-desc="时间序列 Raft 集群（有状态存储，系统监控指标）。">
+          <path class="cyl-body" d="M1379,1788 L1379,1850 A60,14 0 0 0 1499,1850 L1499,1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="1439" cy="1788" rx="60" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="1439" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">时间序列 Raft 集群</text>
+          <text x="1439" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">系统监控指标</text>
         </g>
 
         <!-- ===== 数据中心 B ===== -->
@@ -643,110 +680,148 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
 
         <!-- ===== 服务集群 ===== -->
         <g class="obj" data-name="服务集群" data-cat="core" data-desc="交易系统服务集群：内核服务、边缘服务、控制面服务与监控治理服务；无状态与有状态服务以不同颜色区分。">
-          <rect x="1720" y="580" width="1100" height="980" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+          <rect x="1720" y="580" width="1100" height="1136" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
         <circle cx="1737" cy="604" r="4" fill="var(--c-core)"/>
         <text x="1748" y="609" font-size="16" font-weight="700" fill="var(--muted)">服务集群</text>
 
         <!-- 内核服务 -->
-        <g class="obj" data-name="内核服务" data-cat="core" data-desc="内核服务：交易所核心引擎。">
-          <rect x="1740" y="748" width="1060" height="426" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        <g class="obj" data-name="内核服务（有状态）" data-cat="core" data-desc="内核服务：交易所核心引擎。">
+          <rect x="1740" y="748" width="1060" height="598" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="1757" cy="772" r="4" fill="var(--c-core)"/>
-        <text x="1768" y="777" font-size="16" font-weight="700" fill="var(--muted)">内核服务</text>
 
-        <g class="obj" data-name="预交易集群" data-cat="core" data-desc="预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。主从节点 IP 注册至交易调度网关。">
+        <!-- 实时热备集群（虚拟组） -->
+        <g class="obj" data-name="实时热备集群（主-多从 · DC 内同步复制 · 跨 DC 半同步复制）" data-cat="core" data-desc="实时热备集群（内核服务虚拟组）：预交易集群、OMS & 撮合引擎集群、风控监测引擎集群、风控治理服务集群与行情引擎集群（均主 + 多从）；DC 内主从仲裁同步复制实现实时热备，跨 DC 半同步复制实现跨 DC HA。">
+          <rect x="1740" y="760" width="1054" height="174" rx="12" fill="color-mix(in srgb, var(--c-core) 10%, var(--canvas))" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="1757" cy="779" r="3.5" fill="var(--c-core)"/>
+        <text x="1768" y="783" font-size="13" font-weight="700" fill="var(--muted)">实时热备集群（主-多从 · DC 内同步复制 · 跨 DC 半同步复制）</text>
+
+        <g class="obj" data-name="预交易集群" data-cat="core" data-desc="预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。主从节点 IP 注册至交易调度集群。">
           <rect x="1748" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
           <text x="1873" y="817" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">预交易集群</text>
-          <text x="1873" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">资金冻结预留 · 主 + 多从 · 半同步复制</text>
+          <text x="1873" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">资金冻结预留</text>
         </g>
         <g class="obj" data-name="OMS & 撮合引擎集群" data-cat="core" data-desc="OMS & 撮合引擎集群：覆盖现货、永续合约、期权与预测四条产品线；每个产品线主节点 + 多从节点，半同步复制；订单簿状态管理与撮合执行（有状态）。">
           <rect x="2012" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
           <text x="2137" y="817" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">OMS & 撮合引擎集群</text>
-          <text x="2137" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">现货/永续/期权/预测 · 主+多从半同步复制</text>
-        </g>
-        <g class="obj" data-name="清算集群" data-cat="core" data-desc="清算集群：持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）（有状态）。">
-          <rect x="2276" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="2401" y="817" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">清算集群</text>
-          <text x="2401" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">持仓簿 · 保证金 · 现货结算</text>
+          <text x="2137" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">现货/永续/期权/预测</text>
         </g>
         <g class="obj" data-name="风控监测引擎集群" data-cat="core" data-desc="风控监测引擎集群（事件驱动，非轮询）：主节点 + 多从节点，半同步复制（包含强平状态机）；由标记价格跳动、成交、资金费率与转账事件触发，跟踪 Top N 强平、保险与 ADL 候选（有状态）。">
-          <rect x="2540" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="2665" y="817" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">风控监测引擎集群</text>
-          <text x="2665" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">标记价/成交/资金费/转账 · 主+多从半同步</text>
+          <rect x="2276" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2401" y="817" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">风控监测引擎集群</text>
+          <text x="2401" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">标记价/成交/资金费/转账</text>
         </g>
         <g class="obj" data-name="风控治理服务集群" data-cat="core" data-desc="风控治理服务集群：主节点 + 多从节点，半同步复制（包含强平状态机）；执行强制平仓、保险与 ADL 自动减仓（有状态）。">
-          <rect x="1748" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="1873" y="893" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">风控治理服务集群</text>
-          <text x="1873" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">执行强平/保险/ADL · 主+多从半同步</text>
-        </g>
-        <g class="obj" data-name="结算集群" data-cat="core" data-desc="结算集群：衍生品结算——定期触发的资金费率收取与到期事件触发的期权交割结算（有状态）。">
-          <rect x="2012" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="2137" y="893" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">结算集群</text>
-          <text x="2137" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">资金费率（定期）· 期权交割（到期）</text>
+          <rect x="2540" y="790" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2665" y="817" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">风控治理服务集群</text>
+          <text x="2665" y="838" text-anchor="middle" font-size="12" fill="var(--muted)">执行强平/保险/ADL</text>
         </g>
         <g class="obj" data-name="行情引擎集群" data-cat="core" data-desc="行情引擎集群：按交易对（Symbol）分片部署；聚合行情数据并分片写入 Redis 行情数据中心，主节点 + 多从节点半同步复制备份（有状态）。">
-          <rect x="2276" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="2401" y="893" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">行情引擎集群</text>
-          <text x="2401" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">按 Symbol 分片 · 主 + 多从半同步复制</text>
+          <rect x="1748" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1873" y="893" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">行情引擎集群</text>
+          <text x="1873" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">按 Symbol 分片</text>
+        </g>
+        <!-- 弱状态服务集群（虚拟组） -->
+        <g class="obj" data-name="弱状态服务集群（快照 + 日志重放 · 事件序号保证幂等）" data-cat="infra" data-desc="弱状态服务集群（内核服务虚拟组）：清算集群、结算集群、充提币服务集群、用户资产核算服务集群、指数价格服务集群、C2C/P2P 交易服务集群与 AI 交易集群（弱状态）。">
+          <rect x="1740" y="944" width="1060" height="178" rx="12" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="1757" cy="958" r="4" fill="var(--c-infra)"/>
+        <text x="1768" y="962" font-size="13" font-weight="700" fill="var(--muted)">弱状态服务集群（快照 + 日志重放 · 事件序号保证幂等）</text>
+
+        <g class="obj" data-name="清算集群" data-cat="core" data-desc="清算集群：持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）（有状态）。">
+          <rect x="1748" y="976" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1873" y="1003" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">清算集群</text>
+          <text x="1873" y="1024" text-anchor="middle" font-size="12" fill="var(--muted)">持仓簿 · 保证金 · 现货结算</text>
+        </g>
+        <g class="obj" data-name="结算集群" data-cat="core" data-desc="结算集群：衍生品结算——定期触发的资金费率收取与到期事件触发的期权交割结算（有状态）。">
+          <rect x="2012" y="976" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2137" y="1003" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">结算集群</text>
+          <text x="2137" y="1024" text-anchor="middle" font-size="12" fill="var(--muted)">资金费率（定期）· 期权交割（到期）</text>
         </g>
         <g class="obj" data-name="充提币服务集群" data-cat="core" data-desc="充提币服务集群：提现请求管理、充值扫链监控、提币地址白名单与签名编排（无状态）。">
-          <rect x="2540" y="866" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="2665" y="893" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">充提币服务集群</text>
-          <text x="2665" y="914" text-anchor="middle" font-size="12" fill="var(--muted)">提现 · 充值扫链</text>
+          <rect x="2276" y="976" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2401" y="1003" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">充提币服务集群</text>
+          <text x="2401" y="1024" text-anchor="middle" font-size="12" fill="var(--muted)">提现 · 充值扫链</text>
         </g>
         <g class="obj" data-name="用户资产核算服务集群" data-cat="core" data-desc="用户资产核算服务集群：法币与加密资产归集与内部账本（有状态）。">
-          <rect x="1748" y="942" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="1873" y="969" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">用户资产核算服务集群</text>
-          <text x="1873" y="990" text-anchor="middle" font-size="12" fill="var(--muted)">法币/加密归集 · 内部账本</text>
+          <rect x="1748" y="1052" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1873" y="1079" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">用户资产核算服务集群</text>
+          <text x="1873" y="1100" text-anchor="middle" font-size="12" fill="var(--muted)">法币/加密归集 · 内部账本</text>
         </g>
         <g class="obj" data-name="指数价格服务集群" data-cat="core" data-desc="指数价格服务（预言机）：聚合外部行情数据计算标记价格，供资金费率、期权交割与强平使用（有状态）。">
-          <rect x="2012" y="942" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="2137" y="969" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">指数价格服务集群</text>
-          <text x="2137" y="990" text-anchor="middle" font-size="12" fill="var(--muted)">标记价格 · 预言机</text>
+          <rect x="2012" y="1052" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2137" y="1079" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">指数价格服务集群</text>
+          <text x="2137" y="1100" text-anchor="middle" font-size="12" fill="var(--muted)">标记价格 · 预言机</text>
         </g>
         <g class="obj" data-name="C2C/P2P 交易服务集群" data-cat="core" data-desc="OTC 询价（RFQ）交易服务；状态存储于 Redis 集群，最终同步至 SQL 数据库（有状态）。">
-          <rect x="2276" y="942" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="2401" y="969" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">C2C/P2P 交易服务集群</text>
-          <text x="2401" y="990" text-anchor="middle" font-size="12" fill="var(--muted)">OTC 询价 · 状态存 Redis</text>
+          <rect x="2276" y="1052" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2401" y="1079" text-anchor="middle" font-size="14" font-weight="600" fill="var(--fg)">C2C/P2P 交易服务集群</text>
+          <text x="2401" y="1100" text-anchor="middle" font-size="12" fill="var(--muted)">OTC 询价 · 状态存 Redis</text>
         </g>
         <g class="obj" data-name="AI 交易集群" data-cat="core" data-desc="AI 交易集群：在实时行情与订单簿之上运行 AI 交易员推理；用户将账户委托给 AI 交易集群，支付费用由 CEX 代为交易以获取更高收益（有状态）。">
-          <rect x="2540" y="942" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
-          <text x="2665" y="969" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">AI 交易集群</text>
-          <text x="2665" y="990" text-anchor="middle" font-size="12" fill="var(--muted)">AI 推理 · 账户委托交易</text>
+          <rect x="2540" y="1052" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2665" y="1079" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">AI 交易集群</text>
+          <text x="2665" y="1100" text-anchor="middle" font-size="12" fill="var(--muted)">AI 推理 · 账户委托交易</text>
         </g>
-        <g class="obj" data-name="钱包服务集群" data-cat="core" data-desc="钱包服务集群：Web3 区块链交易处理；内含钱包风控、MPC 签名网关、MPC Actor（SGX）、KYT 与 KMS/HSM 密钥管理等子系统（有状态）。">
-          <rect x="1740" y="1018" width="1060" height="138" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        <!-- 数据写入、快照与投影层（事件序号保证幂等）（虚拟组） -->
+        <g class="obj" data-name="数据写入、快照与投影层（事件序号保证幂等）" data-cat="md" data-desc="数据写入、快照与投影层（内核服务虚拟组）：账本集群与持仓/保证金集群为账本、持仓/保证金数据的单一事实源（写入侧）；数据归档集群与 ES 数据集群为历史归档与查询投影（投影侧）。">
+          <rect x="1740" y="1132" width="1060" height="102" rx="12" fill="color-mix(in srgb, var(--c-md) 10%, var(--canvas))" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="1757" cy="1042" r="4" fill="var(--c-core)"/>
-        <text x="1768" y="1047" font-size="16" font-weight="700" fill="var(--muted)">钱包服务集群</text>
+        <circle cx="1757" cy="1146" r="4" fill="var(--c-md)"/>
+        <text x="1768" y="1150" font-size="13" font-weight="700" fill="var(--muted)">数据写入、快照与投影层（事件序号保证幂等）</text>
+
+        <g class="obj" data-name="账本集群" data-cat="core" data-desc="账本集群：账本数据的单一事实源，所有账本读写操作经其完成（有状态）。">
+          <rect x="1748" y="1164" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="1873" y="1191" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">账本集群</text>
+          <text x="1873" y="1212" text-anchor="middle" font-size="12" fill="var(--muted)">账本数据单一事实源</text>
+        </g>
+        <g class="obj" data-name="持仓/保证金集群" data-cat="core" data-desc="持仓/保证金集群：持仓与保证金数据的单一事实源，所有持仓/保证金读写操作经其完成（有状态）。">
+          <rect x="2012" y="1164" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2137" y="1191" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">持仓/保证金集群</text>
+          <text x="2137" y="1212" text-anchor="middle" font-size="12" fill="var(--muted)">持仓/保证金单一事实源</text>
+        </g>
+        <g class="obj" data-name="数据归档集群" data-cat="core" data-desc="数据归档集群：历史数据归档（有状态）。">
+          <rect x="2276" y="1164" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2401" y="1191" text-anchor="middle" font-size="14.5" font-weight="600" fill="var(--fg)">数据归档集群</text>
+          <text x="2401" y="1212" text-anchor="middle" font-size="12" fill="var(--muted)">历史数据归档</text>
+        </g>
+        <g class="obj" data-name="ES 数据集群" data-cat="core" data-desc="Elasticsearch 数据服务：订单、成交、资金流水等数据查询与应用日志聚合（有状态）。">
+          <rect x="2540" y="1164" width="250" height="62" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="2665" y="1191" text-anchor="middle" font-size="15" font-weight="600" fill="var(--fg)">ES 数据集群</text>
+          <text x="2665" y="1212" text-anchor="middle" font-size="12" fill="var(--muted)">订单·成交·流水 · 应用日志</text>
+        </g>
+        <g class="obj" data-name="钱包服务集群" data-cat="acc" data-desc="钱包服务集群：Web3 区块链交易处理；内含钱包&钱包风控、MPC 签名网关、MPC Actor（SGX）、KYT 与 KMS/HSM 密钥管理等子系统（有状态）。">
+          <rect x="1740" y="1244" width="1060" height="94" rx="12" fill="color-mix(in srgb, var(--c-acc) 10%, var(--canvas))" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="1757" cy="1258" r="4" fill="var(--c-acc)"/>
+        <text x="1768" y="1262" font-size="16" font-weight="700" fill="var(--muted)">钱包服务集群</text>
 
         <g class="obj" data-name="钱包&钱包风控服务集群" data-cat="acc" data-desc="钱包&钱包风控服务：加密资产转账处理；监管合规与反洗钱检查（有状态）。">
-          <rect x="1752" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="1852" y="1088" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">钱包&钱包风控服务集群</text>
-          <text x="1852" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">加密资产转账 · 监管合规 · 反洗钱</text>
+          <rect x="1752" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="1852" y="1296" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">钱包&钱包风控服务集群</text>
+          <text x="1852" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">加密资产转账 · 监管合规 · 反洗钱</text>
         </g>
         <g class="obj" data-name="MPC 签名网关集群" data-cat="acc" data-desc="MPC 签名网关：签名请求路由与编排（有状态）。">
-          <rect x="1962" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="2062" y="1088" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">MPC 签名网关集群</text>
-          <text x="2062" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">签名路由与编排</text>
+          <rect x="1962" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="2062" y="1296" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">MPC 签名网关集群</text>
+          <text x="2062" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">签名路由与编排</text>
         </g>
         <g class="obj" data-name="MPC Actor（SGX）签名服务集群" data-cat="acc" data-desc="MPC Actor（SGX）签名服务：SGX 可信执行环境内的 MPC 多方签名（有状态）。">
-          <rect x="2172" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="2272" y="1088" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">MPC Actor（SGX）签名服务集群</text>
-          <text x="2272" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">SGX 多方签名</text>
+          <rect x="2172" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="2272" y="1296" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">MPC Actor（SGX）签名服务集群</text>
+          <text x="2272" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">SGX 多方签名</text>
         </g>
         <g class="obj" data-name="KYT（Elliptic）服务集群" data-cat="acc" data-desc="KYT（Elliptic）：链上交易合规分析（有状态）。">
-          <rect x="2382" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="2482" y="1088" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">KYT（Elliptic）服务集群</text>
-          <text x="2482" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">链上合规分析</text>
+          <rect x="2382" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="2482" y="1296" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">KYT（Elliptic）服务集群</text>
+          <text x="2482" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">链上合规分析</text>
         </g>
         <g class="obj" data-name="KMS/HSM 密钥管理服务集群" data-cat="acc" data-desc="KMS/HSM 密钥管理服务：JWT 签名密钥、API Key 等系统密钥托管（有状态）。">
-          <rect x="2592" y="1066" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
-          <text x="2692" y="1088" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">KMS/HSM 密钥管理服务集群</text>
-          <text x="2692" y="1107" text-anchor="middle" font-size="11" fill="var(--muted)">系统密钥托管</text>
+          <rect x="2592" y="1274" width="200" height="56" rx="8" fill="color-mix(in srgb, var(--c-acc) 12%, var(--canvas))" stroke="var(--c-acc)" stroke-width="2.6"/>
+          <text x="2692" y="1296" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">KMS/HSM 密钥管理服务集群</text>
+          <text x="2692" y="1315" text-anchor="middle" font-size="11" fill="var(--muted)">系统密钥托管</text>
         </g>
-
 
         <!-- 边缘服务（无状态） -->
         <g class="obj" data-name="边缘服务" data-cat="gw" data-desc="边缘服务（无状态）：面向用户的接入层服务，含交易调度网关、开放平台 API Key 管理、活动服务与数据读取管线。">
@@ -755,203 +830,190 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
         <circle cx="1757" cy="644" r="4" fill="var(--c-gw)"/>
         <text x="1768" y="649" font-size="16" font-weight="700" fill="var(--muted)">边缘服务（无状态）</text>
 
-        <g class="obj" data-name="数据读取管线" data-cat="md" data-desc="数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅网关集群，统一承载数据读取流水线。">
+        <g class="obj" data-name="数据读取管线" data-cat="md" data-desc="数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅集群，统一承载数据读取流水线。">
           <rect x="2585" y="648" width="215" height="82" rx="10" fill="none" stroke="var(--c-md)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
         <circle cx="2593" cy="658" r="3" fill="var(--c-md)"/>
         <text x="2603" y="662" font-size="11" font-weight="700" fill="var(--c-md)">数据读取管线</text>
 
-        <g class="obj" data-name="用户管理服务集群" data-cat="core" data-desc="用户管理服务（无状态）。">
+        <g class="obj" data-name="用户管理集群" data-cat="core" data-desc="用户管理集群（无状态）。">
           <rect x="1748" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
-          <text x="1803.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">用户管理服务集群</text>
-          <text x="1803.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">账户资料</text>
+          <text x="1803.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">用户管理集群</text>
+          <text x="1803.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">账户资料</text>
         </g>
-        <g class="obj" data-name="鉴权 AUTH 集群" data-cat="core" data-desc="基于 JWT 的登录鉴权（无状态）。">
+        <g class="obj" data-name="鉴权集群" data-cat="core" data-desc="基于 JWT 的登录鉴权（无状态）。">
           <rect x="1863" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
-          <text x="1918.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">鉴权 AUTH 集群</text>
-          <text x="1918.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">JWT 登录</text>
+          <text x="1918.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">鉴权集群</text>
+          <text x="1918.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">JWT 登录</text>
         </g>
-        <g class="obj" data-name="交易调度网关集群" data-cat="gw" data-desc="交易调度网关集群：感知预交易集群的主节点（预交易集群向网关注册主从节点 IP）；交易命令按账户 ID 分片路由至下游预交易(主节点)（双数据中心均可调度转发）（无状态）。">
+        <g class="obj" data-name="交易调度集群" data-cat="gw" data-desc="交易调度集群：感知预交易集群的主节点（预交易集群向其注册主从节点 IP）；交易命令按账户 ID 分片路由至下游主预交易节点（双数据中心均可调度转发）（无状态）。">
           <rect x="1978" y="662" width="128" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-gw)" stroke-width="2.2"/>
-          <text x="2042.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">交易调度网关集群</text>
-          <text x="2042.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">命令 → 预交易(主节点)</text>
+          <text x="2042.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">交易调度集群</text>
+          <text x="2042.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">命令 → 主预交易节点</text>
         </g>
-        <g class="obj" data-name="用户消息服务集群" data-cat="acc" data-desc="邮件、短信与 App 推送等用户消息触达（无状态）。">
+        <g class="obj" data-name="用户消息集群" data-cat="acc" data-desc="邮件、短信与 App 推送等用户消息触达（无状态）。">
           <rect x="2111" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2166.0" y="684" text-anchor="middle" font-size="10" font-weight="600" fill="var(--fg)">用户消息服务集群</text>
-          <text x="2166.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">邮件 · 短信 · 推送</text>
+          <text x="2166.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">用户消息集群</text>
+          <text x="2166.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">邮件 · 短信 · 推送</text>
         </g>
-        <g class="obj" data-name="KYC 服务集群" data-cat="acc" data-desc="用户实名认证（无状态）。">
+        <g class="obj" data-name="KYC 集群" data-cat="acc" data-desc="用户实名认证（无状态）。">
           <rect x="2226" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2281.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">KYC 服务集群</text>
-          <text x="2281.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">实名认证</text>
+          <text x="2281.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">KYC 集群</text>
+          <text x="2281.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">实名认证</text>
         </g>
         <g class="obj" data-name="活动服务集群" data-cat="acc" data-desc="活动服务集群：用户面活动执行——红包领取、IEO 申购、空投申领、优惠券使用（无状态）。">
           <rect x="2341" y="662" width="110" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2396.0" y="684" text-anchor="middle" font-size="10" font-weight="600" fill="var(--fg)">活动服务集群</text>
-          <text x="2396.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">红包领取 · IEO 申购</text>
+          <text x="2396.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">活动服务集群</text>
+          <text x="2396.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">红包领取 · IEO 申购</text>
         </g>
-        <g class="obj" data-name="开放平台 API Key 集群" data-cat="acc" data-desc="开放平台 API Key 管理服务：API Key 签发、签名校验与限流（无状态）。">
+        <g class="obj" data-name="Open API Key 集群" data-cat="acc" data-desc="Open API Key 集群：API Key 签发、签名校验与限流（无状态）。">
           <rect x="2456" y="662" width="132" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2522.0" y="684" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--fg)">开放平台 API Key 集群</text>
-          <text x="2522.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">管理 · 签名校验</text>
+          <text x="2522.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Open API Key 集群</text>
+          <text x="2522.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">管理 · 签名校验</text>
         </g>
-        <g class="obj" data-name="行情发布/订阅网关集群" data-cat="md" data-desc="行情发布/订阅网关（无状态）。">
-          <rect x="2593" y="662" width="100" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
-          <text x="2643.0" y="684" text-anchor="middle" font-size="10" font-weight="600" fill="var(--fg)">行情发布/订阅网关集群</text>
-          <text x="2643.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">发布 · 订阅</text>
+        <g class="obj" data-name="行情发布/订阅集群" data-cat="md" data-desc="行情发布/订阅集群（无状态）。">
+          <rect x="2593" y="662" width="104" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="2643.0" y="684" text-anchor="middle" font-size="12" font-weight="600" fill="var(--fg)">行情发布/订阅集群</text>
+          <text x="2643.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">发布 · 订阅</text>
         </g>
         <g class="obj" data-name="数据读取集群" data-cat="md" data-desc="数据读取集群：统一数据读取入口，所有数据查询请求（行情、订单、成交、资产等）经其读取数据层（无状态）。">
-          <rect x="2698" y="662" width="100" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
-          <text x="2748.0" y="684" text-anchor="middle" font-size="10" font-weight="600" fill="var(--fg)">数据读取集群</text>
-          <text x="2748.0" y="703" text-anchor="middle" font-size="10" fill="var(--muted)">统一数据读取入口</text>
+          <rect x="2702" y="662" width="96" height="56" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="2750.0" y="684" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">数据读取集群</text>
+          <text x="2750.0" y="703" text-anchor="middle" font-size="11" fill="var(--muted)">统一数据读取入口</text>
         </g>
 
         <!-- 控制面服务 -->
         <g class="obj" data-name="控制面服务" data-cat="acc" data-desc="控制面服务（无状态）：运营配置（风控引擎 · 费率）、持仓锁定、红包、IEO、空投、优惠券、审计日志服务、监管报表服务、定时调度服务、资金对账服务与配置中心。">
-          <rect x="1740" y="1190" width="500" height="330" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+          <rect x="1740" y="1356" width="500" height="330" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="1757" cy="1214" r="4" fill="var(--c-acc)"/>
-        <text x="1768" y="1219" font-size="16" font-weight="700" fill="var(--muted)">控制面服务</text>
+        <circle cx="1757" cy="1380" r="4" fill="var(--c-acc)"/>
+        <text x="1768" y="1385" font-size="16" font-weight="700" fill="var(--muted)">控制面服务</text>
 
         <g class="obj" data-name="运营配置（风控引擎 · 费率等）" data-cat="acc" data-desc="运营配置下发（风控引擎、费率等），由运营后台操作（无状态服务）。">
-          <rect x="1749" y="1230" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1824" y="1255" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">运营配置</text>
-          <text x="1824" y="1272" text-anchor="middle" font-size="11" fill="var(--muted)">（风控引擎 · 费率等）</text>
+          <rect x="1749" y="1396" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1824" y="1421" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">运营配置</text>
+          <text x="1824" y="1438" text-anchor="middle" font-size="11" fill="var(--muted)">（风控引擎 · 费率等）</text>
         </g>
         <g class="obj" data-name="持仓锁定" data-cat="acc" data-desc="持仓锁定（Position Locking）运营操作（无状态服务）。">
-          <rect x="1909" y="1230" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1984" y="1260" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">持仓锁定</text>
+          <rect x="1909" y="1396" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1984" y="1426" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">持仓锁定</text>
         </g>
         <g class="obj" data-name="红包" data-cat="acc" data-desc="红包活动运营（无状态服务）。">
-          <rect x="2069" y="1230" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2144" y="1260" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">红包</text>
+          <rect x="2069" y="1396" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="2144" y="1426" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">红包</text>
         </g>
         <g class="obj" data-name="IEO" data-cat="acc" data-desc="交易所首次发行（IEO）运营（无状态服务）。">
-          <rect x="1749" y="1304" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1824" y="1334" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">IEO</text>
+          <rect x="1749" y="1470" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1824" y="1500" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">IEO</text>
         </g>
         <g class="obj" data-name="空投" data-cat="acc" data-desc="空投活动运营（无状态服务）。">
-          <rect x="1909" y="1304" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1984" y="1334" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">空投</text>
+          <rect x="1909" y="1470" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1984" y="1500" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">空投</text>
         </g>
         <g class="obj" data-name="优惠券" data-cat="acc" data-desc="优惠券活动运营（无状态服务）。">
-          <rect x="2069" y="1304" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2144" y="1334" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">优惠券</text>
+          <rect x="2069" y="1470" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="2144" y="1500" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">优惠券</text>
         </g>
         <g class="obj" data-name="审计日志服务" data-cat="acc" data-desc="审计日志服务：操作留痕，写入对象存储（无状态）。">
-          <rect x="1749" y="1378" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1824" y="1408" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">审计日志服务</text>
+          <rect x="1749" y="1544" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1824" y="1574" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">审计日志服务</text>
         </g>
         <g class="obj" data-name="监管报表服务" data-cat="acc" data-desc="监管报表服务：监管报送（可疑交易报告等）（无状态）。">
-          <rect x="1909" y="1378" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1984" y="1408" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">监管报表服务</text>
+          <rect x="1909" y="1544" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1984" y="1574" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">监管报表服务</text>
         </g>
         <g class="obj" data-name="定时调度服务" data-cat="acc" data-desc="定时调度服务：统一定时任务调度（资金费结算、快照、活动开奖等）（无状态）。">
-          <rect x="2069" y="1378" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2144" y="1408" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">定时调度服务</text>
+          <rect x="2069" y="1544" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="2144" y="1574" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">定时调度服务</text>
         </g>
         <g class="obj" data-name="资金对账服务" data-cat="acc" data-desc="资金对账服务：清算、钱包与法币通道之间的账实核对（无状态）。">
-          <rect x="1749" y="1452" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1824" y="1482" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">资金对账服务</text>
+          <rect x="1749" y="1618" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1824" y="1648" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">资金对账服务</text>
         </g>
         <g class="obj" data-name="配置中心" data-cat="acc" data-desc="配置中心：服务级动态配置下发（轻量服务）。">
-          <rect x="1909" y="1452" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="1984" y="1482" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">配置中心</text>
+          <rect x="1909" y="1618" width="150" height="54" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="1984" y="1648" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">配置中心</text>
         </g>
 
         <!-- 监控与治理面 -->
         <g class="obj" data-name="监控与治理面" data-cat="md" data-desc="监控与治理面（无状态）：监控与治理集群；主从故障切换由共识算法自动完成，无需人工操作。">
-          <rect x="2260" y="1190" width="540" height="330" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+          <rect x="2260" y="1356" width="540" height="330" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="2277" cy="1214" r="4" fill="var(--c-md)"/>
-        <text x="2288" y="1219" font-size="16" font-weight="700" fill="var(--muted)">监控与治理面</text>
+        <circle cx="2277" cy="1380" r="4" fill="var(--c-md)"/>
+        <text x="2288" y="1385" font-size="16" font-weight="700" fill="var(--muted)">监控与治理面</text>
 
         <g class="obj" data-name="监控与治理集群" data-cat="acc" data-desc="监控与治理集群：服务指标监控与服务健康监控（无状态）；主从故障切换由共识算法自动完成，无需人工操作。">
-          <rect x="2276" y="1230" width="508" height="112" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2530" y="1270" text-anchor="middle" font-size="16" font-weight="600" fill="var(--fg)">监控与治理集群</text>
-          <text x="2530" y="1294" text-anchor="middle" font-size="12.5" fill="var(--muted)">指标监控 · 健康监控</text>
-          <text x="2530" y="1318" text-anchor="middle" font-size="12" fill="var(--muted)">主从故障切换：共识算法自动完成，无需人工操作</text>
-        </g>
-        <g class="obj" data-name="撮合回放服务集群" data-cat="acc" data-desc="撮合回放服务集群：基于列式数据中心的回归测试行情回放撮合流程（无状态）。">
           <rect x="2276" y="1396" width="508" height="112" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
-          <text x="2530" y="1436" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">撮合回放服务集群</text>
-          <text x="2530" y="1460" text-anchor="middle" font-size="12" fill="var(--muted)">基于列式数据中心回放撮合</text>
+          <text x="2530" y="1436" text-anchor="middle" font-size="16" font-weight="600" fill="var(--fg)">监控与治理集群</text>
+          <text x="2530" y="1460" text-anchor="middle" font-size="12.5" fill="var(--muted)">指标监控 · 健康监控</text>
+          <text x="2530" y="1484" text-anchor="middle" font-size="12" fill="var(--muted)">主从故障切换：共识算法自动完成，无需人工操作</text>
+        </g>
+        <g class="obj" data-name="撮合回放服务集群" data-cat="acc" data-desc="撮合回放服务集群：基于列式数据 Raft 集群的回归测试行情回放撮合流程（无状态）。">
+          <rect x="2276" y="1562" width="508" height="112" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="2530" y="1602" text-anchor="middle" font-size="15.5" font-weight="600" fill="var(--fg)">撮合回放服务集群</text>
+          <text x="2530" y="1626" text-anchor="middle" font-size="12" fill="var(--muted)">基于列式数据 Raft 集群回放撮合</text>
         </g>
 
         <!-- ===== 数据层集群 ===== -->
-        <g class="obj" data-name="数据层集群" data-cat="infra" data-desc="数据层集群：Aeron 消息、Redis 缓存、行情数据中心、数据归档、ES、列式数据中心、SQL、对象存储与时序数据库。">
-          <rect x="1720" y="1620" width="1100" height="140" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        <g class="obj" data-name="数据层集群" data-cat="infra" data-desc="数据层集群：Aeron Raft 集群、Redpanda Raft 集群、Redis 集群、行情数据中心、列式数据 Raft 集群、SQL Raft 集群、对象存储 Raft 集群与时间序列 Raft 集群。">
+          <rect x="1720" y="1746" width="1100" height="140" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
         </g>
-        <circle cx="2616" cy="1644" r="4" fill="var(--c-infra)"/>
-        <text x="2627" y="1649" font-size="16" font-weight="700" fill="var(--muted)">数据层集群</text>
 
-        <g class="obj" data-name="Aeron 消息集群" data-cat="infra" data-desc="Aeron 分布式消息队列集群，服务集群内部服务间消息通信（有状态）。">
-          <rect x="1740" y="1662" width="104" height="62" rx="8" fill="color-mix(in srgb, var(--c-infra) 12%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="1792" y="1689" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Aeron 消息集群</text>
-          <text x="1792" y="1710" text-anchor="middle" font-size="11.5" fill="var(--muted)">消息队列</text>
+        <g class="obj" data-name="Aeron Raft 集群" data-cat="infra" data-desc="Aeron Raft 集群：分布式消息总线，服务集群内部服务间消息通信（有状态）。">
+          <path class="cyl-body" d="M1740 1788 L1740 1850 A52 14 0 0 0 1844 1850 L1844 1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="1792" cy="1788" rx="52" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="1792" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Aeron Raft 集群</text>
+          <text x="1792" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">分布式消息总线</text>
         </g>
-        <g class="obj" data-name="Redis 缓存集群" data-cat="infra" data-desc="Redis 缓存集群（有状态存储，多实例集群）。">
-          <path class="cyl-body" d="M1858 1662 L1858 1724 A52 14 0 0 0 1962 1724 L1962 1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="1910" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="1910" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Redis 缓存集群</text>
-          <text x="1910" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">多实例集群</text>
+        <g class="obj" data-name="Redis 集群（主节点 + 备份）" data-cat="infra" data-desc="Redis 集群（主节点 + 备份）：有状态存储，多实例集群。">
+          <path class="cyl-body" d="M2002 1788 L2002 1850 A52 14 0 0 0 2106 1850 L2106 1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="2054" cy="1788" rx="52" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="2054" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">Redis 集群</text>
+          <text x="2054" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">主节点 + 备份</text>
         </g>
-        <g class="obj" data-name="行情数据中心" data-cat="infra" data-desc="行情数据中心：Redis 集群分片，存储行情数据（有状态存储）。">
-          <path class="cyl-body" d="M1976 1662 L1976 1724 A52 14 0 0 0 2080 1724 L2080 1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="2028" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="2028" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">行情数据中心</text>
-          <text x="2028" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">Redis 集群分片</text>
+        <g class="obj" data-name="行情数据中心" data-cat="infra" data-desc="行情数据中心：多 Redis 集群分片，存储行情数据（有状态存储）。">
+          <path class="cyl-body" d="M2125 1788 L2125 1850 A52 14 0 0 0 2229 1850 L2229 1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="2177" cy="1788" rx="52" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="2177" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">行情数据中心</text>
+          <text x="2177" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">多 Redis 集群分片</text>
         </g>
-        <g class="obj" data-name="数据归档服务" data-cat="infra" data-desc="历史数据归档。">
-          <path class="cyl-body" d="M2094 1662 L2094 1724 A52 14 0 0 0 2198 1724 L2198 1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="2146" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="2146" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">数据归档服务</text>
-          <text x="2146" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">历史数据</text>
+        <g class="obj" data-name="列式数据 Raft 集群" data-cat="infra" data-desc="列式数据 Raft 集群：存储行情回归测试数据（有状态存储）。">
+          <path class="cyl-body" d="M2248 1788 L2248 1850 A60 14 0 0 0 2368 1850 L2368 1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="2308" cy="1788" rx="60" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="2308" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">列式数据 Raft 集群</text>
+          <text x="2308" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">行情回归测试</text>
         </g>
-        <g class="obj" data-name="ES 数据服务" data-cat="infra" data-desc="Elasticsearch 数据服务：订单、成交、资金流水等数据查询。">
-          <path class="cyl-body" d="M2212 1662 L2212 1724 A52 14 0 0 0 2316 1724 L2316 1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="2264" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="2264" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">ES 数据服务</text>
-          <text x="2264" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">订单·成交·流水</text>
+        <g class="obj" data-name="SQL Raft 集群" data-cat="infra" data-desc="SQL Raft 集群：上→下投影，下→上恢复（有状态存储）。">
+          <path class="cyl-body" d="M2387 1788 L2387 1850 A67 14 0 0 0 2521 1850 L2521 1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="2454" cy="1788" rx="67" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="2454" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">SQL Raft 集群</text>
+          <text x="2454" y="1837" text-anchor="middle" font-size="11" fill="var(--muted)">上→下投影 · 下→上恢复</text>
         </g>
-        <g class="obj" data-name="列式数据中心" data-cat="infra" data-desc="列式数据库，存储回归测试行情数据（有状态存储）。">
-          <path class="cyl-body" d="M2330 1662 L2330 1724 A52 14 0 0 0 2434 1724 L2434 1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="2382" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="2382" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">列式数据中心</text>
-          <text x="2382" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">回归测试行情</text>
+        <g class="obj" data-name="对象存储 Raft 集群" data-cat="infra" data-desc="对象存储 Raft 集群（有状态存储，归档与快照）。">
+          <path class="cyl-body" d="M2540 1788 L2540 1850 A60 14 0 0 0 2660 1850 L2660 1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="2600" cy="1788" rx="60" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="2600" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">对象存储 Raft 集群</text>
+          <text x="2600" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">归档与快照</text>
         </g>
-        <g class="obj" data-name="SQL 数据库集群" data-cat="infra" data-desc="SQL 关系数据库集群（有状态存储），由 Redis XStream 复制入库。">
-          <path class="cyl-body" d="M2448 1662 L2448 1724 A52 14 0 0 0 2552 1724 L2552 1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="2500" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="2500" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">SQL 数据库集群</text>
-          <text x="2500" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">XStream 复制</text>
-        </g>
-        <g class="obj" data-name="对象存储集群" data-cat="infra" data-desc="对象存储集群（有状态存储，归档与快照）。">
-          <path class="cyl-body" d="M2566 1662 L2566 1724 A52 14 0 0 0 2670 1724 L2670 1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="2618" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="2618" y="1692" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">对象存储集群</text>
-          <text x="2618" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">归档与快照</text>
-        </g>
-        <g class="obj" data-name="时序数据库（指标）" data-cat="infra" data-desc="时序数据库（有状态存储，系统监控指标）。">
-          <path class="cyl-body" d="M2684 1662 L2684 1724 A52 14 0 0 0 2788 1724 L2788 1662" fill="color-mix(in srgb, var(--c-infra) 8%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <ellipse cx="2736" cy="1662" rx="52" ry="14" fill="color-mix(in srgb, var(--c-infra) 10%, var(--canvas))" stroke="var(--c-infra)" stroke-width="2.6"/>
-          <text x="2736" y="1692" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--fg)">时序数据库（指标）</text>
-          <text x="2736" y="1711" text-anchor="middle" font-size="11.5" fill="var(--muted)">系统监控指标</text>
+        <g class="obj" data-name="时间序列 Raft 集群" data-cat="infra" data-desc="时间序列 Raft 集群（有状态存储，系统监控指标）。">
+          <path class="cyl-body" d="M2679 1788 L2679 1850 A60 14 0 0 0 2799 1850 L2799 1788" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <ellipse cx="2739" cy="1788" rx="60" ry="14" fill="var(--canvas)" stroke="var(--c-infra)" stroke-width="2.6"/>
+          <text x="2739" y="1815" text-anchor="middle" font-size="13" font-weight="600" fill="var(--fg)">时间序列 Raft 集群</text>
+          <text x="2739" y="1837" text-anchor="middle" font-size="11.5" fill="var(--muted)">系统监控指标</text>
         </g>
 
         <!-- ===== 数据中心 B ===== -->
         <g class="obj" data-name="数据中心 B · CEX 集群（同构）" data-cat="core" data-desc="与数据中心 A 同构的 CEX 集群（LB、网关、服务集群与数据层），经 cross DC (100km) Raft 共识复制实现容灾 HA。">
-          <rect x="1700" y="430" width="1140" height="1430" rx="12" fill="none" stroke="var(--c-core)" stroke-width="1.6" stroke-dasharray="10 7" opacity="0.55"/>
+          <rect x="1700" y="430" width="1140" height="1530" rx="12" fill="none" stroke="var(--c-core)" stroke-width="1.6" stroke-dasharray="10 7" opacity="0.55"/>
         </g>
-        <circle cx="1740" cy="1796" r="7" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="4 4"/>
-        <text x="1760" y="1802" font-size="13.5" fill="var(--muted)">同 DC 本地 HA 复制：服务集群多副本部署</text>
+        <circle cx="1740" cy="1922" r="7" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="4 4"/>
+        <text x="1760" y="1928" font-size="13.5" fill="var(--muted)">同 DC 本地 HA 复制：服务集群多副本部署</text>
         <rect x="1704" y="416" width="260" height="30" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="1.4"/>
         <text x="1834" y="436" text-anchor="middle" font-size="16" font-weight="700" fill="var(--c-core)">数据中心 B · CEX 集群</text>
                         
         <!-- ===== 本地 HA 复制标注 ===== -->
-        <circle cx="440" cy="1796" r="7" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="4 4"/>
-        <text x="460" y="1802" font-size="13.5" fill="var(--muted)">同 DC 本地 HA 复制：服务集群多副本部署</text>
+        <circle cx="440" cy="1922" r="7" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="4 4"/>
+        <text x="460" y="1928" font-size="13.5" fill="var(--muted)">同 DC 本地 HA 复制：服务集群多副本部署</text>
 
         <!-- ===== connections ===== -->
         <g class="conn" data-name="客户端 → CDN（https/ws）">
@@ -1018,64 +1080,44 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
           <polyline points="2050,542 2050,580" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
           <text x="2058" y="560" text-anchor="start" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">转发</text>
         </g>
-        <g class="conn" data-name="审计日志服务 → 对象存储（写入）">
-          <polyline points="524,1432 442,1432 442,1512 1318,1512 1318,1662" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
-          <text x="700" y="1504" text-anchor="middle" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">写入</text>
-        </g>
         <g class="conn" data-name="钱包服务集群 → 公链 RPC 集群（广播上链）">
-          <polyline points="440,1087 374,1087 374,1394 334,1394" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
+          <polyline points="440,1291 374,1291 374,1394 334,1394" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
           <text x="380" y="1386" text-anchor="start" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">广播上链</text>
         </g>
         <g class="conn" data-name="用户资产核算服务集群 → 法币通道代理（法币出金）">
-          <polyline points="448,973 374,973 374,1548 334,1548" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
+          <polyline points="448,1083 374,1083 374,1548 334,1548" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
           <text x="380" y="1540" text-anchor="start" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">法币出金</text>
         </g>
         <g class="conn" data-name="法币通道代理 → 充提币服务集群（法币入金）">
-          <polyline points="334,1572 374,1572 374,936 1240,936 1240,928" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
+          <polyline points="334,1572 374,1572 374,1045 976,1045 976,1038" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
           <text x="380" y="1564" text-anchor="start" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">法币入金</text>
         </g>
-        <g class="conn" data-name="数据归档 → 对象存储（归档）">
-          <polyline points="898,1724 898,1740 1266,1740 1266,1724" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
-          <text x="1082" y="1752" text-anchor="middle" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">归档</text>
+        <g class="conn" data-name="cross DC (100km) Raft HA · 主备复制（Redis）">
+          <polyline points="1520,1819 1720,1819" fill="none" stroke="var(--line)" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
+          <text x="1620" y="1805" text-anchor="middle" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">跨 DC < 100km Raft HA · 主备复制</text>
         </g>
-        <g class="conn" data-name="数据归档 → 对象存储（归档）">
-          <polyline points="2198,1724 2198,1740 2566,1740 2566,1724" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
-          <text x="2382" y="1752" text-anchor="middle" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">归档</text>
-        </g>
-        <g class="conn" data-name="Redis 缓存集群 → SQL 数据库集群（复制 XStream）">
-          <polyline points="662,1662 662,1632 1252,1632 1252,1662" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
-          <text x="957" y="1624" text-anchor="middle" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">复制（XStream）</text>
-        </g>
-        <g class="conn" data-name="Redis 缓存集群 → SQL 数据库集群（复制 XStream）">
-          <polyline points="1962,1662 1962,1632 2552,1632 2552,1662" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
-          <text x="2257" y="1624" text-anchor="middle" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">复制（XStream）</text>
-        </g>
-        <g class="conn" data-name="cross DC (100km) Raft HA">
-          <polyline points="1520,1691 1720,1691" fill="none" stroke="var(--line)" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
-          <text x="1620" y="1677" text-anchor="middle" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">跨 DC < 100km Raft HA</text>
-        </g>
-        <text x="1620" y="1707" text-anchor="middle" font-size="12" font-style="italic" fill="var(--muted)">延迟 0.5ms - 7ms</text>
+        <text x="1620" y="1835" text-anchor="middle" font-size="12" font-style="italic" fill="var(--muted)">Redis 主备 · 延迟 0.5ms - 7ms</text>
         <g class="conn" data-name="跨 DC 主从半同步复制（A → B）">
-          <polyline points="1500,884 1740,884" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
-          <text x="1620" y="876" text-anchor="middle" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">跨 DC 主从半同步复制（A → B）</text>
+          <polyline points="1500,839 1740,839" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
+          <text x="1620" y="831" text-anchor="middle" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">跨 DC 主从半同步复制（A → B）</text>
         </g>
         <g class="conn" data-name="跨 DC 主从半同步复制（B → A）">
-          <polyline points="1740,910 1500,910" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
-          <text x="1620" y="922" text-anchor="middle" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">跨 DC 主从半同步复制（B → A）</text>
+          <polyline points="1740,855 1500,855" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
+          <text x="1620" y="867" text-anchor="middle" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">跨 DC 主从半同步复制（B → A）</text>
         </g>
-        <g class="conn" data-name="交易调度网关集群 → 预交易集群（按账户 ID 分片 · A → A）">
+        <g class="conn" data-name="交易调度集群 → 预交易集群（按账户 ID 分片 · A → A）">
           <polyline points="688,718 688,790" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
           <text x="694" y="755" text-anchor="start" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">按账户 ID 分片</text>
         </g>
-        <g class="conn" data-name="交易调度网关集群 → 预交易集群（按账户 ID 分片 · A → B）">
+        <g class="conn" data-name="交易调度集群 → 预交易集群（按账户 ID 分片 · A → B）">
           <polyline points="742,718 742,736 1843,736 1843,790" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
           <text x="1300" y="728" text-anchor="middle" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">按账户 ID 分片</text>
         </g>
-        <g class="conn" data-name="交易调度网关集群 → 预交易集群（按账户 ID 分片 · B → B）">
+        <g class="conn" data-name="交易调度集群 → 预交易集群（按账户 ID 分片 · B → B）">
           <polyline points="2042,718 2042,744 1873,744 1873,790" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
           <text x="1950" y="736" text-anchor="middle" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">按账户 ID 分片</text>
         </g>
-        <g class="conn" data-name="交易调度网关集群 → 预交易集群（按账户 ID 分片 · B → A）">
+        <g class="conn" data-name="交易调度集群 → 预交易集群（按账户 ID 分片 · B → A）">
           <polyline points="1978,690 1978,764 630,764 630,790" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah)"/>
           <text x="1300" y="772" text-anchor="middle" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">按账户 ID 分片</text>
         </g>
@@ -1084,6 +1126,16 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
           <polyline points="350,1500 400,1500" fill="none" stroke="var(--line)" stroke-width="1.8" stroke-dasharray="5 5" marker-end="url(#ah)"/>
           <text x="375" y="1488" text-anchor="middle" font-size="12.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">外部连接</text>
         </g>
+        <!-- 内核服务块名（置于 SVG 末尾以保证绘制在最上层，不被底色与连线遮盖） -->
+        <circle cx="457" cy="758" r="4" fill="var(--c-core)"/>
+        <text x="468" y="762" font-size="16" font-weight="700" fill="var(--muted)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">内核服务（有状态）</text>
+        <circle cx="1757" cy="758" r="4" fill="var(--c-core)"/>
+        <text x="1768" y="762" font-size="16" font-weight="700" fill="var(--muted)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">内核服务（有状态）</text>
+        <!-- 数据层集群容器标签（置于 SVG 末尾，白描边遮断圆柱椭圆弧） -->
+        <circle cx="437" cy="1770" r="4" fill="var(--c-infra)"/>
+        <text x="448" y="1775" font-size="16" font-weight="700" fill="var(--muted)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">数据层集群</text>
+        <circle cx="1737" cy="1770" r="4" fill="var(--c-infra)"/>
+        <text x="1748" y="1775" font-size="16" font-weight="700" fill="var(--muted)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">数据层集群</text>
       </svg>
       <figcaption hidden>CEX 交易系统概览</figcaption>
     </figure>
@@ -1112,7 +1164,7 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
   <section id="import">
     <div class="eyebrow">导入 IcePanel</div>
     <h2>导入 IcePanel</h2>
-    <p class="lede">本概览对应的完整模型 —— 155 个对象、35 条连接 —— 保存在 <span class="mono">icepanel-landscape.json</span>，采用 IcePanel 的 Model-as-code 格式，一次 API 调用即可全部创建。</p>
+    <p class="lede">本概览对应的完整模型 —— 167 个对象、30 条连接 —— 保存在 <span class="mono">icepanel-landscape.json</span>，采用 IcePanel 的 Model-as-code 格式，一次 API 调用即可全部创建。</p>
     <div class="steps">
       <div class="step">
         <div class="n">1</div>

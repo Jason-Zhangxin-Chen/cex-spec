@@ -242,7 +242,7 @@
     },
     {
       "id": "g-kernel",
-      "name": "内核服务",
+      "name": "内核服务（有状态）",
       "type": "group",
       "parentId": "s-dc1",
       "description": "内核服务：交易所核心引擎。"
@@ -253,7 +253,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-hotstandby"
       ],
       "description": "风控监测引擎集群（事件驱动，非轮询）：主节点 + 多从节点，半同步复制（包含强平状态机）；由标记价格跳动、成交、资金费率与转账事件触发，跟踪 Top N 强平、保险与 ADL 候选（有状态）。"
     },
@@ -263,7 +264,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-hotstandby"
       ],
       "description": "风控治理服务集群：主节点 + 多从节点，半同步复制（包含强平状态机）；执行强制平仓、保险与 ADL 自动减仓（有状态）。"
     },
@@ -273,7 +275,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-weak"
       ],
       "description": "清算集群：持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）（有状态）。"
     },
@@ -283,7 +286,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-weak"
       ],
       "description": "OTC 询价（RFQ）交易服务；状态存储于 Redis 集群，最终同步至 SQL 数据库（有状态）。"
     },
@@ -293,7 +297,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-weak"
       ],
       "description": "用户资产核算服务集群：法币与加密资产归集与内部账本（有状态）。"
     },
@@ -346,21 +351,21 @@
       "name": "边缘服务",
       "type": "group",
       "parentId": "s-dc1",
-      "description": "边缘服务（无状态）：面向用户的接入层服务，含 CQRS 交易网关、开放平台 API Key 管理、活动服务与数据读取管线。"
+      "description": "边缘服务（无状态）：面向用户的接入层服务，含 交易调度集群、Open API Key 集群、活动服务与数据读取管线。"
     },
     {
       "id": "a-user",
-      "name": "用户管理服务集群",
+      "name": "用户管理集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
         "g-edge-svc"
       ],
-      "description": "用户管理服务（无状态）。"
+      "description": "用户管理集群（无状态）。"
     },
     {
       "id": "a-auth",
-      "name": "鉴权 AUTH 集群",
+      "name": "鉴权集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
@@ -370,18 +375,18 @@
     },
     {
       "id": "a-mdgw",
-      "name": "行情（发布/订阅）网关服务集群",
+      "name": "行情发布/订阅集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
         "g-edge-svc",
         "g-readpipe"
       ],
-      "description": "行情发布/订阅网关（无状态）。"
+      "description": "行情发布/订阅集群（无状态）。"
     },
     {
       "id": "a-msg",
-      "name": "用户消息服务集群",
+      "name": "用户消息集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
@@ -391,7 +396,7 @@
     },
     {
       "id": "a-kyc",
-      "name": "KYC 服务集群",
+      "name": "KYC 集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
@@ -478,21 +483,34 @@
       "name": "数据层集群",
       "type": "group",
       "parentId": "s-dc1",
-      "description": "数据层集群：Aeron 消息、Redis 缓存、行情数据中心、数据归档、ES、列式数据中心、SQL、对象存储与时序数据库。"
+      "description": "数据层集群：Aeron Raft 集群、Redpanda Raft 集群、Redis 集群、行情数据中心、列式数据 Raft 集群、SQL Raft 集群、对象存储 Raft 集群与时间序列 Raft 集群。"
     },
     {
       "id": "s-aeron",
-      "name": "Aeron 消息集群",
+      "name": "Aeron Raft 集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
         "g-data"
       ],
-      "description": "Aeron 分布式消息队列集群，服务集群内部服务间消息通信（有状态）。"
+      "description": "Aeron Raft 集群：分布式消息总线，服务集群内部服务间消息通信（有状态）。"
+    },
+    {
+      "id": "s-redpanda",
+      "name": "Redpanda Raft 集群",
+      "type": "store",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-data"
+      ],
+      "technologyIds": [
+        "kafka"
+      ],
+      "description": "Redpanda Raft 集群：高性能 Kafka 分布式消息队列（有状态存储）。"
     },
     {
       "id": "s-redis",
-      "name": "Redis 缓存集群",
+      "name": "Redis 集群（主节点 + 备份）",
       "type": "store",
       "parentId": "s-dc1",
       "groupIds": [
@@ -501,7 +519,7 @@
       "technologyIds": [
         "redis"
       ],
-      "description": "Redis 缓存集群（有状态存储，多实例集群）。"
+      "description": "Redis 集群（主节点 + 备份）：有状态存储，多实例集群。"
     },
     {
       "id": "s-mdstore",
@@ -514,70 +532,72 @@
       "technologyIds": [
         "redis"
       ],
-      "description": "行情数据中心：Redis 集群分片，存储行情数据（有状态存储）。"
+      "description": "行情数据中心：多 Redis 集群分片，存储行情数据（有状态存储）。"
     },
     {
       "id": "a-archive",
-      "name": "数据归档服务",
+      "name": "数据归档集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-data"
+        "g-kernel",
+        "g-proj"
       ],
-      "description": "历史数据归档。"
+      "description": "数据归档集群：历史数据归档（有状态）。"
     },
     {
       "id": "a-es",
-      "name": "ES 数据服务",
+      "name": "ES 数据集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-data"
+        "g-kernel",
+        "g-proj"
       ],
       "technologyIds": [
         "elasticsearch"
       ],
-      "description": "Elasticsearch 数据服务：订单、成交、资金流水等数据查询与应用日志聚合。"
+      "description": "Elasticsearch 数据集群：订单、成交、资金流水等数据查询与应用日志聚合（有状态）。"
     },
     {
       "id": "s-columnar",
-      "name": "列式数据中心",
+      "name": "列式数据 Raft 集群",
       "type": "store",
       "parentId": "s-dc1",
       "groupIds": [
         "g-data"
       ],
-      "description": "列式数据库，存储回归测试行情数据（有状态存储）。"
+      "description": "列式数据 Raft 集群：存储行情回归测试数据（有状态存储）。"
     },
     {
       "id": "s-sql",
-      "name": "SQL 数据库集群",
+      "name": "SQL Raft 集群",
       "type": "store",
       "parentId": "s-dc1",
       "groupIds": [
         "g-data"
       ],
-      "description": "SQL 关系数据库集群（有状态存储），由 Redis XStream 复制入库。"
+      "description": "SQL Raft 集群：上→下投影，下→上恢复（有状态存储）。"
     },
     {
       "id": "s-oss",
-      "name": "对象存储集群",
+      "name": "对象存储 Raft 集群",
       "type": "store",
       "parentId": "s-dc1",
       "groupIds": [
         "g-data"
       ],
-      "description": "对象存储集群（有状态存储，归档与快照）。"
+      "description": "对象存储 Raft 集群（有状态存储，归档与快照）。"
     },
     {
       "id": "s-ts",
-      "name": "时序数据库（指标）",
+      "name": "时间序列 Raft 集群",
       "type": "store",
       "parentId": "s-dc1",
       "groupIds": [
         "g-data"
       ],
-      "description": "时序数据库（有状态存储，系统监控指标）。"
+      "description": "时间序列 Raft 集群（有状态存储，系统监控指标）。"
     },
     {
       "id": "s-extconn",
@@ -635,7 +655,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-weak"
       ],
       "description": "指数价格服务（预言机）：聚合外部行情数据计算标记价格，供资金费率、期权交割与强平使用（有状态）。"
     },
@@ -652,13 +673,13 @@
     },
     {
       "id": "a-apikey",
-      "name": "开放平台 API Key 管理服务集群",
+      "name": "Open API Key 集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
         "g-edge-svc"
       ],
-      "description": "开放平台 API Key 管理服务：API Key 签发、签名校验与限流（无状态）。"
+      "description": "Open API Key 集群：API Key 签发、签名校验与限流（无状态）。"
     },
     {
       "id": "a-audit",
@@ -720,9 +741,10 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-hotstandby"
       ],
-      "description": "预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。主从节点 IP 注册至交易调度网关。"
+      "description": "预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。主从节点 IP 注册至交易调度集群。"
     },
     {
       "id": "a-mdengine",
@@ -730,7 +752,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-hotstandby"
       ],
       "description": "行情引擎集群：按交易对（Symbol）分片部署；聚合行情数据并分片写入 Redis 行情数据中心，主节点 + 多从节点半同步复制备份（有状态）。"
     },
@@ -740,7 +763,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-weak"
       ],
       "description": "结算集群：衍生品结算——定期触发的资金费率收取与到期事件触发的期权交割结算（有状态）。"
     },
@@ -750,7 +774,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-weak"
       ],
       "description": "充提币服务集群：提现请求管理、充值扫链监控、提币地址白名单与签名编排（无状态）。"
     },
@@ -760,7 +785,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-hotstandby"
       ],
       "description": "OMS & 撮合引擎集群：覆盖现货、永续合约、期权与预测四条产品线；每个产品线主节点 + 多从节点，半同步复制；订单簿状态管理与撮合执行（有状态）。"
     },
@@ -790,7 +816,7 @@
       "name": "数据读取管线",
       "type": "group",
       "parentId": "s-dc1",
-      "description": "数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅网关集群，统一承载数据读取流水线。"
+      "description": "数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅集群，统一承载数据读取流水线。"
     },
     {
       "id": "g-wallet",
@@ -801,6 +827,36 @@
         "g-kernel"
       ],
       "description": "钱包服务集群：Web3 区块链交易处理；内含钱包风控、MPC 签名网关、MPC Actor（SGX）、KYT 与 KMS/HSM 密钥管理等子系统（有状态）。"
+    },
+    {
+      "id": "g-proj",
+      "name": "数据写入、快照与投影层（事件序号保证幂等）",
+      "type": "group",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "数据写入、快照与投影层（内核服务虚拟组）：账本集群与持仓/保证金集群为账本、持仓/保证金数据的单一事实源（写入侧）；数据归档集群与 ES 数据集群为历史归档与查询投影（投影侧）。"
+    },
+    {
+      "id": "g-hotstandby",
+      "name": "实时热备集群（主-多从 · DC 内同步复制 · 跨 DC 半同步复制）",
+      "type": "group",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "实时热备集群（内核服务虚拟组）：预交易集群、OMS & 撮合引擎集群、风控监测引擎集群、风控治理服务集群与行情引擎集群（均主 + 多从）；DC 内主从仲裁同步复制实现实时热备，跨 DC 半同步复制实现跨 DC HA。"
+    },
+    {
+      "id": "g-weak",
+      "name": "弱状态服务集群（快照 + 日志重放 · 事件序号保证幂等）",
+      "type": "group",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel"
+      ],
+      "description": "弱状态服务集群（内核服务虚拟组）：清算集群、结算集群、充提币服务集群、用户资产核算服务集群、指数价格服务集群、C2C/P2P 交易服务集群与 AI 交易集群（弱状态）。"
     },
     {
       "id": "a-campaign",
@@ -837,7 +893,7 @@
       "groupIds": [
         "g-mon"
       ],
-      "description": "撮合回放服务集群：基于列式数据中心的回归测试行情回放撮合流程（无状态）。"
+      "description": "撮合回放服务集群：基于列式数据 Raft 集群的回归测试行情回放撮合流程（无状态）。"
     },
     {
       "id": "a-ai",
@@ -845,7 +901,8 @@
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
-        "g-kernel"
+        "g-kernel",
+        "g-weak"
       ],
       "description": "AI 交易集群：在实时行情与订单簿之上运行 AI 交易员推理；用户将账户委托给 AI 交易集群，支付费用由 CEX 代为交易以获取更高收益（有状态）。"
     },
@@ -875,7 +932,7 @@
     },
     {
       "id": "g-kernel-b",
-      "name": "内核服务",
+      "name": "内核服务（有状态）",
       "type": "group",
       "parentId": "s-dc2",
       "description": "内核服务：交易所核心引擎。（数据中心 B）"
@@ -886,7 +943,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-hotstandby-b"
       ],
       "description": "风控监测引擎集群（事件驱动，非轮询）：主节点 + 多从节点，半同步复制（包含强平状态机）；由标记价格跳动、成交、资金费率与转账事件触发，跟踪 Top N 强平、保险与 ADL 候选（有状态）。（数据中心 B）"
     },
@@ -896,7 +954,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-hotstandby-b"
       ],
       "description": "风控治理服务集群：主节点 + 多从节点，半同步复制（包含强平状态机）；执行强制平仓、保险与 ADL 自动减仓（有状态）。（数据中心 B）"
     },
@@ -906,7 +965,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-weak-b"
       ],
       "description": "清算集群：持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）（有状态）。（数据中心 B）"
     },
@@ -916,7 +976,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-weak-b"
       ],
       "description": "OTC 询价（RFQ）交易服务；状态存储于 Redis 集群，最终同步至 SQL 数据库（有状态）。（数据中心 B）"
     },
@@ -926,7 +987,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-weak-b"
       ],
       "description": "用户资产核算服务集群：法币与加密资产归集与内部账本（有状态）。（数据中心 B）"
     },
@@ -979,21 +1041,21 @@
       "name": "边缘服务",
       "type": "group",
       "parentId": "s-dc2",
-      "description": "边缘服务（无状态）：面向用户的接入层服务，含 CQRS 交易网关、开放平台 API Key 管理、活动服务与数据读取管线。"
+      "description": "边缘服务（无状态）：面向用户的接入层服务，含 交易调度集群、Open API Key 集群、活动服务与数据读取管线。"
     },
     {
       "id": "a-user-b",
-      "name": "用户管理服务集群",
+      "name": "用户管理集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
         "g-edge-svc-b"
       ],
-      "description": "用户管理服务（无状态）。（数据中心 B）"
+      "description": "用户管理集群（无状态）。（数据中心 B）"
     },
     {
       "id": "a-auth-b",
-      "name": "鉴权 AUTH 集群",
+      "name": "鉴权集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
@@ -1003,18 +1065,18 @@
     },
     {
       "id": "a-mdgw-b",
-      "name": "行情（发布/订阅）网关服务集群",
+      "name": "行情发布/订阅集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
         "g-edge-svc-b",
         "g-readpipe-b"
       ],
-      "description": "行情发布/订阅网关（无状态）。（数据中心 B）"
+      "description": "行情发布/订阅集群（无状态）。（数据中心 B）"
     },
     {
       "id": "a-msg-b",
-      "name": "用户消息服务集群",
+      "name": "用户消息集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
@@ -1024,7 +1086,7 @@
     },
     {
       "id": "a-kyc-b",
-      "name": "KYC 服务集群",
+      "name": "KYC 集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
@@ -1111,21 +1173,34 @@
       "name": "数据层集群",
       "type": "group",
       "parentId": "s-dc2",
-      "description": "数据层集群：Aeron 消息、Redis 缓存、行情数据中心、数据归档、ES、列式数据中心、SQL、对象存储与时序数据库。（数据中心 B）"
+      "description": "数据层集群：Aeron Raft 集群、Redpanda Raft 集群、Redis 集群、行情数据中心、列式数据 Raft 集群、SQL Raft 集群、对象存储 Raft 集群与时间序列 Raft 集群（数据中心 B）。"
+    },
+    {
+      "id": "s-redpanda-b",
+      "name": "Redpanda Raft 集群",
+      "type": "store",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-data-b"
+      ],
+      "technologyIds": [
+        "kafka"
+      ],
+      "description": "Redpanda Raft 集群：高性能 Kafka 分布式消息队列（有状态存储）。（数据中心 B）"
     },
     {
       "id": "s-aeron-b",
-      "name": "Aeron 消息集群",
+      "name": "Aeron Raft 集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
         "g-data-b"
       ],
-      "description": "Aeron 分布式消息队列集群，服务集群内部服务间消息通信（有状态）。（数据中心 B）"
+      "description": "Aeron Raft 集群：分布式消息总线，服务集群内部服务间消息通信（有状态）。（数据中心 B）"
     },
     {
       "id": "s-redis-b",
-      "name": "Redis 缓存集群",
+      "name": "Redis 集群（主节点 + 备份）",
       "type": "store",
       "parentId": "s-dc2",
       "groupIds": [
@@ -1134,7 +1209,7 @@
       "technologyIds": [
         "redis"
       ],
-      "description": "Redis 缓存集群（有状态存储，多实例集群）。（数据中心 B）"
+      "description": "Redis 集群（主节点 + 备份）：有状态存储，多实例集群。（数据中心 B）"
     },
     {
       "id": "s-mdstore-b",
@@ -1147,70 +1222,72 @@
       "technologyIds": [
         "redis"
       ],
-      "description": "行情数据中心：Redis 集群分片，存储行情数据（有状态存储）。（数据中心 B）"
+      "description": "行情数据中心：多 Redis 集群分片，存储行情数据（有状态存储）。（数据中心 B）"
     },
     {
       "id": "a-archive-b",
-      "name": "数据归档服务",
+      "name": "数据归档集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-data-b"
+        "g-kernel-b",
+        "g-proj-b"
       ],
-      "description": "历史数据归档。（数据中心 B）"
+      "description": "数据归档集群：历史数据归档（有状态）（数据中心 B）。"
     },
     {
       "id": "a-es-b",
-      "name": "ES 数据服务",
+      "name": "ES 数据集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-data-b"
+        "g-kernel-b",
+        "g-proj-b"
       ],
       "technologyIds": [
         "elasticsearch"
       ],
-      "description": "Elasticsearch 数据服务：订单、成交、资金流水等数据查询与应用日志聚合。（数据中心 B）"
+      "description": "Elasticsearch 数据集群：订单、成交、资金流水等数据查询与应用日志聚合（有状态）（数据中心 B）。"
     },
     {
       "id": "s-columnar-b",
-      "name": "列式数据中心",
+      "name": "列式数据 Raft 集群",
       "type": "store",
       "parentId": "s-dc2",
       "groupIds": [
         "g-data-b"
       ],
-      "description": "列式数据库，存储回归测试行情数据（有状态存储）。（数据中心 B）"
+      "description": "列式数据 Raft 集群：存储行情回归测试数据（有状态存储）。（数据中心 B）"
     },
     {
       "id": "s-sql-b",
-      "name": "SQL 数据库集群",
+      "name": "SQL Raft 集群",
       "type": "store",
       "parentId": "s-dc2",
       "groupIds": [
         "g-data-b"
       ],
-      "description": "SQL 关系数据库集群（有状态存储），由 Redis XStream 复制入库。（数据中心 B）"
+      "description": "SQL Raft 集群：上→下投影，下→上恢复（有状态存储）。（数据中心 B）"
     },
     {
       "id": "s-oss-b",
-      "name": "对象存储集群",
+      "name": "对象存储 Raft 集群",
       "type": "store",
       "parentId": "s-dc2",
       "groupIds": [
         "g-data-b"
       ],
-      "description": "对象存储集群（有状态存储，归档与快照）。（数据中心 B）"
+      "description": "对象存储 Raft 集群（有状态存储，归档与快照）。（数据中心 B）"
     },
     {
       "id": "s-ts-b",
-      "name": "时序数据库（指标）",
+      "name": "时间序列 Raft 集群",
       "type": "store",
       "parentId": "s-dc2",
       "groupIds": [
         "g-data-b"
       ],
-      "description": "时序数据库（有状态存储，系统监控指标）。（数据中心 B）"
+      "description": "时间序列 Raft 集群（有状态存储，系统监控指标）。（数据中心 B）"
     },
     {
       "id": "a-index-b",
@@ -1218,7 +1295,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-weak-b"
       ],
       "description": "指数价格服务（预言机）：聚合外部行情数据计算标记价格，供资金费率、期权交割与强平使用（有状态）。（数据中心 B）"
     },
@@ -1235,13 +1313,13 @@
     },
     {
       "id": "a-apikey-b",
-      "name": "开放平台 API Key 管理服务集群",
+      "name": "Open API Key 集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
         "g-edge-svc-b"
       ],
-      "description": "开放平台 API Key 管理服务：API Key 签发、签名校验与限流（无状态）。（数据中心 B）"
+      "description": "Open API Key 集群：API Key 签发、签名校验与限流（无状态）。（数据中心 B）"
     },
     {
       "id": "a-audit-b",
@@ -1289,9 +1367,10 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-hotstandby-b"
       ],
-      "description": "预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。（数据中心 B）主从节点 IP 注册至交易调度网关。"
+      "description": "预交易集群（Pretrade）：主节点 + 多从节点，半同步复制；有状态——可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额；冻结与订单受理原子化完成，与账户同分片；拦截无效订单防止其进入 OMS 撮合引擎（有状态）。（数据中心 B）主从节点 IP 注册至交易调度集群。"
     },
     {
       "id": "a-mdengine-b",
@@ -1299,7 +1378,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-hotstandby-b"
       ],
       "description": "行情引擎集群：按交易对（Symbol）分片部署；聚合行情数据并分片写入 Redis 行情数据中心，主节点 + 多从节点半同步复制备份（有状态）。（数据中心 B）"
     },
@@ -1309,7 +1389,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-weak-b"
       ],
       "description": "结算集群：衍生品结算——定期触发的资金费率收取与到期事件触发的期权交割结算（有状态）。（数据中心 B）"
     },
@@ -1319,7 +1400,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-weak-b"
       ],
       "description": "充提币服务集群：提现请求管理、充值扫链监控、提币地址白名单与签名编排（无状态）。（数据中心 B）"
     },
@@ -1329,7 +1411,8 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-hotstandby-b"
       ],
       "description": "OMS & 撮合引擎集群：覆盖现货、永续合约、期权与预测四条产品线；每个产品线主节点 + 多从节点，半同步复制；订单簿状态管理与撮合执行（有状态）。（数据中心 B）"
     },
@@ -1359,7 +1442,7 @@
       "name": "数据读取管线",
       "type": "group",
       "parentId": "s-dc2",
-      "description": "数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅网关集群，统一承载数据读取流水线。（数据中心 B）"
+      "description": "数据读取管线（边缘服务子组）：数据读取集群与行情发布/订阅集群，统一承载数据读取流水线。（数据中心 B）"
     },
     {
       "id": "g-wallet-b",
@@ -1370,6 +1453,36 @@
         "g-kernel-b"
       ],
       "description": "钱包服务集群：Web3 区块链交易处理；内含钱包风控、MPC 签名网关、MPC Actor（SGX）、KYT 与 KMS/HSM 密钥管理等子系统（有状态）。（数据中心 B）"
+    },
+    {
+      "id": "g-proj-b",
+      "name": "数据写入、快照与投影层（事件序号保证幂等）",
+      "type": "group",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "数据写入、快照与投影层（内核服务虚拟组）：账本集群与持仓/保证金集群为账本、持仓/保证金数据的单一事实源（写入侧）；数据归档集群与 ES 数据集群为历史归档与查询投影（投影侧）。（数据中心 B）"
+    },
+    {
+      "id": "g-hotstandby-b",
+      "name": "实时热备集群（主-多从 · DC 内同步复制 · 跨 DC 半同步复制）",
+      "type": "group",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "实时热备集群（内核服务虚拟组）：预交易集群、OMS & 撮合引擎集群、风控监测引擎集群、风控治理服务集群与行情引擎集群（均主 + 多从）；DC 内主从仲裁同步复制实现实时热备，跨 DC 半同步复制实现跨 DC HA。（数据中心 B）"
+    },
+    {
+      "id": "g-weak-b",
+      "name": "弱状态服务集群（快照 + 日志重放 · 事件序号保证幂等）",
+      "type": "group",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b"
+      ],
+      "description": "弱状态服务集群（内核服务虚拟组）：清算集群、结算集群、充提币服务集群、用户资产核算服务集群、指数价格服务集群、C2C/P2P 交易服务集群与 AI 交易集群（弱状态）。（数据中心 B）"
     },
     {
       "id": "a-campaign-b",
@@ -1399,7 +1512,7 @@
       "groupIds": [
         "g-mon-b"
       ],
-      "description": "撮合回放服务集群：基于列式数据中心的回归测试行情回放撮合流程（无状态）。（数据中心 B）"
+      "description": "撮合回放服务集群：基于列式数据 Raft 集群的回归测试行情回放撮合流程（无状态）。（数据中心 B）"
     },
     {
       "id": "a-ai-b",
@@ -1407,29 +1520,74 @@
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
-        "g-kernel-b"
+        "g-kernel-b",
+        "g-weak-b"
       ],
       "description": "AI 交易集群：在实时行情与订单簿之上运行 AI 交易员推理；用户将账户委托给 AI 交易集群，支付费用由 CEX 代为交易以获取更高收益（有状态）。（数据中心 B）"
     },
     {
       "id": "a-cqrs",
-      "name": "交易调度网关集群",
+      "name": "交易调度集群",
       "type": "app",
       "parentId": "s-dc1",
       "groupIds": [
         "g-edge-svc"
       ],
-      "description": "交易调度网关集群：感知预交易集群的主节点（预交易集群向网关注册主从节点 IP）；交易命令按账户 ID 分片路由至下游主预交易节点（双数据中心均可调度转发）（无状态）。"
+      "description": "交易调度集群：感知预交易集群的主节点（预交易集群向其注册主从节点 IP）；交易命令按账户 ID 分片路由至下游主预交易节点（双数据中心均可调度转发）（无状态）。"
     },
     {
       "id": "a-cqrs-b",
-      "name": "交易调度网关集群",
+      "name": "交易调度集群",
       "type": "app",
       "parentId": "s-dc2",
       "groupIds": [
         "g-edge-svc-b"
       ],
-      "description": "交易调度网关集群：感知预交易集群的主节点（预交易集群向网关注册主从节点 IP）；交易命令按账户 ID 分片路由至下游主预交易节点（双数据中心均可调度转发）（无状态）。"
+      "description": "交易调度集群：感知预交易集群的主节点（预交易集群向其注册主从节点 IP）；交易命令按账户 ID 分片路由至下游主预交易节点（双数据中心均可调度转发）（无状态）。"
+    },
+    {
+      "id": "a-ledger",
+      "name": "账本集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel",
+        "g-proj"
+      ],
+      "description": "账本集群：账本数据的单一事实源，所有账本读写操作经其完成（有状态）。"
+    },
+    {
+      "id": "a-ledger-b",
+      "name": "账本集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b",
+        "g-proj-b"
+      ],
+      "description": "账本集群：账本数据的单一事实源，所有账本读写操作经其完成（有状态）（数据中心 B）。"
+    },
+    {
+      "id": "a-posmargin",
+      "name": "持仓/保证金集群",
+      "type": "app",
+      "parentId": "s-dc1",
+      "groupIds": [
+        "g-kernel",
+        "g-proj"
+      ],
+      "description": "持仓/保证金集群：持仓与保证金数据的单一事实源，所有持仓/保证金读写操作经其完成（有状态）。"
+    },
+    {
+      "id": "a-posmargin-b",
+      "name": "持仓/保证金集群",
+      "type": "app",
+      "parentId": "s-dc2",
+      "groupIds": [
+        "g-kernel-b",
+        "g-proj-b"
+      ],
+      "description": "持仓/保证金集群：持仓与保证金数据的单一事实源，所有持仓/保证金读写操作经其完成（有状态）（数据中心 B）。"
     }
   ],
   "modelConnections": [
@@ -1532,15 +1690,8 @@
       "targetId": "a-nginx"
     },
     {
-      "id": "c-redis-sql",
-      "name": "复制（XStream）",
-      "direction": "outgoing",
-      "originId": "s-redis",
-      "targetId": "s-sql"
-    },
-    {
       "id": "c-dc1-dc2",
-      "name": "cross DC (100km) Raft HA",
+      "name": "cross DC (100km) Raft HA · 主备复制（Redis）",
       "direction": "bidirectional",
       "originId": "s-dc1",
       "targetId": "s-dc2"
@@ -1558,20 +1709,6 @@
       "direction": "outgoing",
       "originId": "a-nginx",
       "targetId": "g-svc"
-    },
-    {
-      "id": "c-archive-oss",
-      "name": "归档",
-      "direction": "outgoing",
-      "originId": "a-archive",
-      "targetId": "s-oss"
-    },
-    {
-      "id": "c-audit-oss",
-      "name": "写入",
-      "direction": "outgoing",
-      "originId": "a-audit",
-      "targetId": "s-oss"
     },
     {
       "id": "c-wallet-rpc",
@@ -1614,20 +1751,6 @@
       "direction": "outgoing",
       "originId": "a-lb-b",
       "targetId": "s-gtm"
-    },
-    {
-      "id": "c-archive-oss-b",
-      "name": "归档",
-      "direction": "outgoing",
-      "originId": "a-archive-b",
-      "targetId": "s-oss-b"
-    },
-    {
-      "id": "c-redis-sql-b",
-      "name": "复制（XStream）",
-      "direction": "outgoing",
-      "originId": "s-redis-b",
-      "targetId": "s-sql-b"
     },
     {
       "id": "c-dc-repl-ab",

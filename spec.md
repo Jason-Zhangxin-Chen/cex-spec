@@ -110,9 +110,6 @@ OMS and market data engine slave-master failover is handled by consensus algorit
  - Aeron messaging clusters
  - Redis cache clusters (Multiple Instance of Cluster)
  - Market data data center (Redis Cluster Shards)
- - Data archive services
- - ES data services
-Order, trade, fund flow records etc...
  - Column data center (Regression Test Market Data)
  - SQL database clusters (Replicate from Redis XStream)
  - Object storage clusters (Archive & Snapshot)
@@ -221,3 +218,12 @@ Replay matching flows based on the regression test market data in the column dat
 The gateway is aware of the master pretrade nodes; trading commands are routed to the master pretrade nodes.
 
 - Trade scheduling (2026-10-26): both trade scheduler gateway clusters schedule and forward requests by account ID sharding to the downstream pretrade clusters in both data centers; pretrade clusters register their master and slave IPs in the gateways.
+
+#### Kernel services (additions, 2026-10-27)
+- Ledger clusters
+Single source of truth for ledger data; all ledger data operations go through them.
+- Position/Margin clusters
+Single source of truth for position and margin data; all position/margin data operations go through them.
+
+- Data archive services and ES data services (moved from Data layer, 2026-10-27)
+They are services handling data in the kernel; the data layer keeps only the clusters.
