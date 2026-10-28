@@ -1,229 +1,199 @@
-#Spec of the CEX — Multi-Active HA CEX Trade System
+# CEX 规格说明 —— 多活高可用 CEX 交易系统
 
-##The overview
-As a CEX system, it serves trade services in the internet for different regions, thus the user requests are routed into
-different CEX clusters hosted by different data center, and there are cross data center (<100km) Raft consensus replications for cross data
-center HA. Services within the same data center has local HA replications.
+## 系统概述
 
-The models that need to be draw in the overview diagram are:
+本系统作为 CEX 交易所，面向不同区域在互联网上提供交易服务。用户请求被路由到不同数据中心承载的不同 CEX 集群；跨数据中心（< 100km）的高可用由 Raft 共识复制保证，Redis 集群则以主备复制保证跨 DC 高可用。同一数据中心内的服务具备本地 HA 复制。
 
-###The user plane traffic comes from
-The external user plane traffic comes from below two sources, after the CDN, DDoS and WAF filters, they hit into the
-load balancers which should be registered into the cloud providers GTM, with the **traffic routing strategies**. There
- are a cluster of load balancer which is stateless.
+## 用户面流量
 
- - Clients
- The clients include Web UI, Android, IOS and ZenDesk (customer support system). They collect to the system via Https/WS through the CDN, DDoS and
- WAF filters in the GTM DNS layer.
+用户面流量来自以下两个来源，经 CDN、DDOS 防护与 WAF 过滤后，进入注册到云厂商 GTM 的 LB 集群（依据**流量路由策略**调度）。LB 集群无状态。
 
- - OpenAPI
- This interface provides Spot, Perpetual, Prediction production, and Option trade API for market makers where they have their own strategy trading
- system using the interfaces.
+- **客户端**
+  客户端包括 Web UI、Android、iOS 与 ZenDesk（客服支持系统），经 GTM DNS 层的 CDN、DDOS 防护与 WAF 过滤，通过 HTTPS/WS 接入系统。
 
-###The control plane traffic comes from
-The control plane traffic comes from multiple operation UIs via VPN channel one, they hit into the load balancers which should be
-registered into the cloud providers GTM. There are a cluster of load balancer which is stateless.
+- **OpenAPI**
+  该接口为做市商提供现货、永续合约、预测与期权的交易 API，做市商基于这些接口运行自己的策略交易系统。
 
- - Exchange operation UI
- - Risk control operation UI
- - ClearingHouse operation UI
- - Wallet operation UI
- - Wallet risk control operation UI
- - MPC APP (Signature Risk Control&Approve)
+## 控制面流量
 
-###The monitoring & governance plane traffic comes from
-The monitoring & governance plane traffic comes from one source via VPN channel two, they hit into the load balancers
-which should be registered into the cloud GTM.
- - Cluster Monitoring UI
- - Cluster Governance UI
+控制面流量来自以下运营 UI，经 **VPN 通道一**接入注册到云厂商 GTM 的 LB 集群：
 
-###Gateway (NGINX) clusters
-The gateway services for traffic volume control, busyness request routing and rate limit. It routes and forwards requests directly into the service clusters; Aeron is used internally between services within the service clusters.
+- 交易所运营 UI
+- 风控运营 UI
+- 清算所运营 UI
+- 钱包运营 UI
+- 钱包风控运营 UI
+- MPC APP（签名风控与审批）
+- C2C 商户管理 UI
+- 做市商管理 UI
 
-###Service clusters
-The service clusters involves multiple types of services: the kernel services, edge services, control plane services,
-monitoring&governance services.
+## 监控与治理面流量
 
-####Kernel services
-The kernel services are the core engines for the exchange; stateful services among them have state recovery on disaster
-cases.
+监控与治理面流量经 **VPN 通道二**接入注册到云厂商 GTM 的 LB 集群：
 
-- OMS & Match Engine Clusters
-Cover spot, perpetual, prediction and options product lines; every cluster has a master with multi-slaves semi synchronous replication, applying changes from master to local books.
+- 集群监控 UI
+- 集群治理 UI
 
-- Clearing Clusters
-Position book management and margin accounting for perpetual, prediction and options products; spot trade settlement as internal settlement.
+## 网关（nginx）集群
 
-- Risk Monitoring Engine (Event based)
-Master with multi-slaves semi synchronous replication (contains the liquidation state machine). Triggered by mark price ticks, fills, funding and transfer events (not polling); tracks the top N candidates for position liquidation, insurance, ADL.
+网关服务负责流量控制、业务请求路由与限流，将请求直接路由并转发至服务集群。服务集群内部服务之间的消息通信使用 **Aeron Raft 集群**。
 
-- Risk Governance services
-Master with multi-slaves semi synchronous replication (contains the liquidation state machine). Execute position liquidation, insurance and ADL.
+## 服务集群
 
-- Settlement Clusters
-Derivatives settlement triggered periodically (funding fee collection) or by expiry events (option expiry settlement).
+服务集群包含四类服务：内核服务、边缘服务、控制面服务与监控治理服务。
 
-- Market data engine clusters
-Shared by symbol; aggregate market data and shard them into different shards of the redis cluster, with master and multi-slaves semi synchronous replication for backup.
+### 内核服务（有状态）
 
-- C2C/P2P trade services
-Provide OTC request for quote trades service. All the state are stored in Redis cluster, and eventually sync to SQL DB.
+内核服务是交易所的核心引擎；其中有状态的服务在灾难场景下具备状态恢复能力。内核服务按四个子组组织。
 
-- User accounting services (Fiat, Crypto assets pooling)
-Fiat or Crypto deposit/withdraw, internal ledger for this.
+#### 实时热备集群（主-多从 · DC 内同步日志复制 · 跨 DC 半同步日志复制）
 
-- Wallet service (Web3-blockchain TXN)
+实时热备虚拟组。每个集群均为「主 + 多从」：DC 内同步日志复制实现实时热备，跨 DC 半同步日志复制实现跨 DC HA：
 
-- Wallet & wallet risk control services (crypto asset transfer, regulations, anti money cleaning)
+- **预交易集群**
+  每个集群主 + 多从半同步复制。有状态：可用余额与资金冻结表（现货：计价/基准币冻结；合约：初始保证金冻结）、每账户未结订单数与名义价值、缓存的产品参数与风控限额。资金冻结与订单受理原子化完成，与账户同分片。预交易集群拦截无效订单、阻止其进入 OMS 撮合引擎；所有产品线共用同一上游预交易集群。预交易集群将主从节点 IP 注册至交易调度集群。
 
-- MPC signature gateway
+- **OMS & 撮合引擎集群**
+  覆盖现货、永续合约、预测与期权四条产品线；每个集群主 + 多从半同步复制，主节点变更同步至本地订单簿。
 
-- MPC Actor (SGX) signature services
+- **风控监测引擎集群（事件驱动）**
+  由标记价格跳动、成交、资金费率与转账事件触发（非轮询）；跟踪仓位强平、保险与 ADL 的 Top N 候选。包含强平状态机。
 
-- KYT (Elliptic)
+- **风控治理服务集群**
+  执行仓位强平、保险与 ADL。包含强平状态机。
 
-#### Edge Services
-- User management services
-User management services.
-- AUTH management
-Login auth base on jwt.
-- Market data (pub/sub) gateway services
-- User messaging services
- Email, text message,
-- KYC services
+- **行情引擎集群**
+  按交易对（Symbol）分片；聚合行情数据并分片写入行情数据中心（多 Redis 集群分片），主 + 多从半同步复制备份。
 
-#### Operation&Control plane services
- - Operation Configs (Risk Engines, etc...)
- - Position Locking
- - Hong Bao
- - IEO
- - Airdrop
- - YouHuiQuan
+#### 弱状态服务集群（快照 + 日志重放 · 事件序号保证幂等）
 
-#### Monitoring & Governance plane
- - Monitoring & Governance clusters
-Service metric monitoring and service health monitoring.
+弱状态虚拟组。这些服务的状态可通过快照 + 日志重放恢复，幂等由事件序号保证：
 
-OMS and market data engine slave-master failover is handled by consensus algorithms without manual operation (2026-10-26).
+- **清算集群**
+  持仓簿管理与保证金核算（永续合约、预测与期权）；现货成交结算（内部结算）。
 
-### Data layer clusters
- - Aeron messaging clusters
- - Redis cache clusters (Multiple Instance of Cluster)
- - Market data data center (Redis Cluster Shards)
- - Column data center (Regression Test Market Data)
- - SQL database clusters (Replicate from Redis XStream)
- - Object storage clusters (Archive & Snapshot)
- - TS database (System monitoring metrics)
+- **结算集群**
+  衍生品结算：定期触发（资金费率收取）或到期事件触发（期权交割结算）。
 
-### External system connectors
- - Public blockchain RPC clusters
- - KYT service providers
- - 3rd party KYC service providers
- - 3rd party wallet agents
- - Fiat money channel agents
-### Appendix: approved additions (2026-10-23)
+- **充提币服务集群**
+  提现请求管理、充值扫链监控、提币地址白名单与签名编排。流向：充提币 → 用户资产核算（账本）→ 钱包风控 → KYT → 钱包服务 → 公链 RPC；法币出金经法币通道代理。
 
-#### Kernel services (additions)
-- Index price service (Oracle)
-Aggregate external market data to compute the mark price for funding, option settlement and liquidation.
-- KMS/HSM key management services
-Custody of system keys: JWT signing keys, API keys, etc...
+- **用户资产核算服务集群（法币、加密资产归集）**
+  法币与加密资产充提，内部账本。
 
-#### Edge Services (additions)
-- OpenAPI key management services
-API key issuance, signature verification and rate limit for the OpenAPI market makers.
+- **指数价格服务集群（预言机）**
+  聚合外部行情数据计算标记价格，供资金费率、期权交割与强平使用。
 
-#### Operation&Control plane services (additions)
-- Audit log services
-Audit trail of operations, written to object storage.
-- Regulatory report services
-Regulatory reporting (suspicious transaction reports, etc...).
-- Scheduled job services
-Unified cron scheduling (funding settlement, snapshots, campaign draws, etc...).
-- Reconciliation services
-Reconciliation of clearing, wallet and fiat channels.
+- **C2C/P2P 交易服务集群**
+  提供 OTC 询价（RFQ）交易服务。所有状态存储在 Redis 集群，最终同步至 SQL 集群。
 
-#### Control plane traffic sources (additions)
-- C2C merchant management UI
+- **AI 交易集群**
+  在实时行情与订单簿之上运行 AI 交易员推理；用户将账户委托给 AI 交易集群，支付费用给 CEX，由 CEX 代为交易以获取更高收益。
 
-#### External system connectors (additions)
-- Index price data sources
-Market data feeds from multiple exchanges for index price.
+#### 钱包服务集群（容器）
 
-#### Description updates
-- Clearing&Settlement Services: split into Clearing Clusters and Settlement Clusters (2026-10-24).
-- ES data services: also aggregate application logs.
-- User messaging services: email, text message and App push notifications.
+Web3 区块链交易处理。容器内含以下子系统：
 
-#### Kernel services (additions, 2026-10-26)
+- 钱包&钱包风控服务（加密资产转账、监管合规、反洗钱）
+- MPC 签名网关
+- MPC Actor（SGX）签名服务
+- KYT（Elliptic）
+- KMS/HSM 密钥管理服务（系统密钥托管：JWT 签名密钥、API Key 等）
 
-- AI trading clusters
-Run AI trader inference on top of the current market data and order books; traders delegate their accounts to the AI trader clusters, they pay the fee to the CEX and the CEX trades for them for higher profit.
+#### 数据写入、快照与投影层（事件序号保证幂等）
 
-- Pretrade clusters (moved from Edge Services)
-Every cluster has a master with multi-slaves semi synchronous replication. Stateful: available balance and reserved-funds tables (spot: quote/base lock; futures: initial margin lock), per-account open order count and notional, cached instrument params and risk limits. Reservation is atomic with order acceptance and lives in the same shard as the account. Pretrade clusters stop invalid orders hitting the OMS&MatchEngine; all product lines share the same upstream pretrade clusters.
+数据写入与投影虚拟组：账本集群与持仓/保证金集群是账本、持仓/保证金数据的单一事实源（写入侧）；数据归档集群与 ES 数据集群提供历史归档与查询投影（投影侧）。幂等由事件序号保证。
 
-#### Naming convention (2026-10-23)
-All services inside the service clusters are named with the "集群 (Cluster)" suffix, indicating multi-instance HA deployment.
+- **账本集群**
+  账本数据的单一事实源；所有账本数据操作均经其完成。
 
-#### Kernel services (additions, 2026-10-26)
+- **持仓/保证金集群**
+  持仓与保证金数据的单一事实源；所有持仓/保证金数据操作均经其完成。
 
-- AI trading clusters
-Run AI trader inference on top of the current market data and order books; traders delegate their accounts to the AI trader clusters, they pay the fee to the CEX and the CEX trades for them for higher profit.
+- **数据归档集群**
+  历史数据归档。
 
-- Deposit & Withdrawal service clusters (moved from Edge Services)
-Withdrawal request management, deposit watching, withdrawal address whitelist and signing orchestration. Flows: deposit&withdrawal -> user accounting (ledger), -> wallet risk control -> KYT, -> wallet service -> public blockchain RPC; fiat withdrawal via fiat money channel agents.
+- **ES 数据集群**
+  订单、成交与资金流水查询；应用日志聚合。
 
-#### Edge Services (additions, 2026-10-26)
-- Data reader clusters
-All data reading requests go through the data reader clusters (market data, orders, trades, assets, etc...).
+### 边缘服务（无状态）
 
-- Data reading pipeline (sub-group of Edge Services): contains the data reader clusters and the market data pub/sub gateway clusters (2026-10-26).
+- **用户管理集群**
+  用户管理服务。
 
-#### Kernel services (additions, 2026-10-26)
+- **鉴权集群**
+  基于 JWT 的登录鉴权。
 
-- AI trading clusters
-Run AI trader inference on top of the current market data and order books; traders delegate their accounts to the AI trader clusters, they pay the fee to the CEX and the CEX trades for them for higher profit.
+- **交易调度集群**
+  感知预交易集群的主节点；交易命令路由至主预交易节点。双数据中心的两个交易调度集群均按账户 ID 分片调度并转发至下游预交易集群；预交易集群将主从节点 IP 注册至调度集群。
 
-- Wallet service clusters (container): contain wallet risk control, MPC signature gateway, MPC Actor (SGX), KYT and KMS/HSM private key management as sub-systems.
+- **用户消息集群**
+  邮件、短信与 App 推送通知。
 
-- Naming (2026-10-26): Operation&Control plane services drop the "集群 (Cluster)" suffix as they are not heavy clusters.
+- **KYC 集群**
+  用户实名认证（KYC）。
 
-#### Kernel services (additions, 2026-10-26)
+- **活动服务集群**
+  用户面活动执行：红包领取、IEO 申购、空投申领、优惠券使用。
 
-- AI trading clusters
-Run AI trader inference on top of the current market data and order books; traders delegate their accounts to the AI trader clusters, they pay the fee to the CEX and the CEX trades for them for higher profit.
+- **Open API Key 集群**
+  面向 OpenAPI 做市商的 API Key 签发、签名校验与限流。
 
-#### Edge Services (additions, 2026-10-26)
-- Campaign service clusters
-User-facing campaign execution: Hong Bao claiming, IEO subscription, airdrop claiming, coupon usage.
+- **数据读取管线（子组）**
+  包含行情发布/订阅集群与数据读取集群。所有数据读取请求（行情、订单、成交、资产等）均经数据读取集群。
 
-#### Operation&Control plane services (additions, 2026-10-26)
-- Fee configs
-Tagged with the operation configs (risk engines & fee schedules); fee application happens on the OMS & MatchEngine side.
-- Config center
-Dynamic service-level configuration delivery.
+### 控制面服务
 
-#### Control plane traffic sources (additions, 2026-10-26)
-- Market maker management UI
+控制面服务为轻量服务，不带「集群」后缀：
 
-#### Monitoring & Governance plane (additions, 2026-10-26)
-- Match replay service clusters
-Replay matching flows based on the regression test market data in the column data center.
+- **运营配置**（风控引擎 · 费率）；费率应用在 OMS & 撮合引擎侧生效。
+- **持仓锁定**
+- **红包**
+- **IEO**
+- **空投**
+- **优惠券**
+- **审计日志服务** —— 操作留痕，写入对象存储。
+- **监管报表服务** —— 监管报送（可疑交易报告等）。
+- **定时调度服务** —— 统一定时调度（资金费率结算、快照、活动抽奖等）。
+- **资金对账服务** —— 清算、钱包与法币通道的对账。
+- **配置中心** —— 服务级配置动态下发。
 
-#### Flows (additions, 2026-10-26)
-- Fiat deposit: fiat money channel agents -> deposit & withdrawal service clusters.
+### 监控与治理面
 
-- Trade scheduler gateway clusters (Edge Services, 2026-10-26)
-The gateway is aware of the master pretrade nodes; trading commands are routed to the master pretrade nodes.
+- **监控与治理集群**
+  服务指标监控与服务健康监控。系统目录（系统拓扑）描述系统的地图。OMS 与行情引擎的主从故障切换由共识算法自动完成，无需人工操作。
 
-- Trade scheduling (2026-10-26): both trade scheduler gateway clusters schedule and forward requests by account ID sharding to the downstream pretrade clusters in both data centers; pretrade clusters register their master and slave IPs in the gateways.
+- **撮合回放服务集群**
+  基于列式数据 Raft 集群中的回归测试行情数据回放撮合流程。
 
-#### Kernel services (additions, 2026-10-27)
-- Ledger clusters
-Single source of truth for ledger data; all ledger data operations go through them.
-- Position/Margin clusters
-Single source of truth for position and margin data; all position/margin data operations go through them.
+## 数据层集群
 
-- Data archive services and ES data services (moved from Data layer, 2026-10-27)
-They are services handling data in the kernel; the data layer keeps only the clusters.
+- **Aeron Raft 集群** —— 分布式消息总线，服务集群内部服务间通信。
+- **Redpanda Raft 集群** —— 高性能 Kafka 兼容的分布式消息队列。
+- **Redis 集群（主节点 + 备份）** —— 多实例集群；主备复制实现 HA。
+- **行情数据中心** —— 多 Redis 集群分片，存储行情数据。
+- **列式数据 Raft 集群** —— 存储行情回归测试数据。
+- **SQL Raft 集群** —— 上→下投影，下→上恢复。
+- **对象存储 Raft 集群** —— 归档与快照。
+- **时间序列 Raft 集群** —— 系统监控指标。
+
+数据层跨 DC HA：跨 DC（100km）Raft HA；Redis 集群以主备复制实现 HA（延迟 0.5ms - 7ms）。
+
+## 外部系统连接器
+
+- 公链 RPC 集群
+- KYT 服务提供商
+- 第三方 KYC 服务提供商
+- 第三方钱包代理
+- 法币通道代理
+- 指数价格数据源 —— 来自多个交易所的行情数据源，用于指数价格。
+
+## 跨数据中心 HA
+
+- 内核服务跨两个数据中心以跨 DC 主从半同步日志复制实现 HA（双向，距离 < 100km，延迟 0.5ms - 7ms）。
+- 数据层采用跨 DC（100km）Raft HA；Redis 集群以主备复制实现 HA（延迟 0.5ms - 7ms）。
+- 同一数据中心内的服务具备本地 HA 复制。
+
+## 命名约定
+
+服务集群内的所有服务均带「集群」后缀，表示多实例 HA 部署 —— 控制面服务除外（轻量服务，不带后缀）。
