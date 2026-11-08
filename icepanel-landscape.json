@@ -1588,6 +1588,174 @@
         "g-proj-b"
       ],
       "description": "持仓/保证金集群：持仓与保证金数据的单一事实源，所有持仓/保证金读写操作经其完成（有状态）（数据中心 B）。"
+    },
+    {
+      "id": "s-account-model",
+      "name": "账户模型",
+      "type": "system",
+      "parentId": "d-cex",
+      "description": "账户数据模型：层级结构 Account → Wallet → AssetBalance，按钱包类型 × 资产 × 余额状态多维建模，支撑现货、杠杆、衍生品与法币业务。"
+    },
+    {
+      "id": "g-account",
+      "name": "账户层（Level 0）",
+      "type": "group",
+      "parentId": "s-account-model",
+      "description": "账户层：根身份容器，1 个账户下挂 N 个钱包。"
+    },
+    {
+      "id": "a-acct-root",
+      "name": "Account",
+      "type": "app",
+      "parentId": "g-account",
+      "description": "账户根身份：accountId、accountType（SPOT、MARGIN、FUTURES…）与 updateTime。"
+    },
+    {
+      "id": "g-wallets",
+      "name": "钱包层（Level 1）",
+      "type": "group",
+      "parentId": "s-account-model",
+      "description": "钱包层：按 WalletType 分键，按产品线隔离资金——现货、全仓杠杆、USDⓈ-M 合约、COIN-M 合约、资金、理财。"
+    },
+    {
+      "id": "a-w-spot",
+      "name": "Spot",
+      "type": "app",
+      "parentId": "g-wallets",
+      "description": "现货钱包：现货交易资金。"
+    },
+    {
+      "id": "a-w-cross",
+      "name": "CrossMargin",
+      "type": "app",
+      "parentId": "g-wallets",
+      "description": "全仓杠杆钱包：共享保证金池。"
+    },
+    {
+      "id": "a-w-iso",
+      "name": "IsolatedMargin(pair)",
+      "type": "app",
+      "parentId": "g-wallets",
+      "description": "逐仓杠杆钱包：每个交易对一个虚拟钱包（携带 pair_id）。"
+    },
+    {
+      "id": "a-w-um",
+      "name": "USDⓈ-M",
+      "type": "app",
+      "parentId": "g-wallets",
+      "description": "U 本位合约钱包：USDT / USDC 抵押，美元计价盈亏。"
+    },
+    {
+      "id": "a-w-cm",
+      "name": "COIN-M",
+      "type": "app",
+      "parentId": "g-wallets",
+      "description": "币本位合约钱包：BTC / ETH 抵押。"
+    },
+    {
+      "id": "a-w-funding",
+      "name": "Funding",
+      "type": "app",
+      "parentId": "g-wallets",
+      "description": "资金钱包：充值、提现、P2P 与刷卡支付（→ 股票账户）。"
+    },
+    {
+      "id": "a-w-earn",
+      "name": "Earn",
+      "type": "app",
+      "parentId": "g-wallets",
+      "description": "理财钱包：收益产品申购。"
+    },
+    {
+      "id": "g-balance",
+      "name": "资产余额层（Level 2）",
+      "type": "group",
+      "parentId": "s-account-model",
+      "description": "资产余额层：单资产持仓记录，主键 PK=(account_id, wallet_type, asset)。"
+    },
+    {
+      "id": "g-bal-core",
+      "name": "核心字段（所有钱包）",
+      "type": "group",
+      "parentId": "g-balance",
+      "description": "所有钱包共有的余额字段：total / available / locked。"
+    },
+    {
+      "id": "a-f-total",
+      "name": "total",
+      "type": "app",
+      "parentId": "g-bal-core",
+      "description": "total / totalWalletBalance：该钱包持有的资产毛额（含锁定，未扣负债、未加减未实现盈亏）。"
+    },
+    {
+      "id": "a-f-available",
+      "name": "available",
+      "type": "app",
+      "parentId": "g-bal-core",
+      "description": "available / free：立即可用于新订单、提现或划转；唯一允许为负的字段（仅杠杆钱包——保证金追缴信号）。"
+    },
+    {
+      "id": "a-f-locked",
+      "name": "locked",
+      "type": "app",
+      "parentId": "g-bal-core",
+      "description": "locked / reserved：已预留资金——挂单未成交部分、保证金抵押、理财未赎回；Lighter 中称 locked_balance。"
+    },
+    {
+      "id": "g-bal-margin",
+      "name": "保证金专有",
+      "type": "group",
+      "parentId": "g-balance",
+      "description": "杠杆钱包专有字段（其余钱包为 0）：borrowed / interest。"
+    },
+    {
+      "id": "a-f-borrowed",
+      "name": "borrowed",
+      "type": "app",
+      "parentId": "g-bal-margin",
+      "description": "borrowed：欠交易所 / 贷方的借款数量。"
+    },
+    {
+      "id": "a-f-interest",
+      "name": "interest",
+      "type": "app",
+      "parentId": "g-bal-margin",
+      "description": "interest：借款累计利息；Binance MarginBalance 类型扩展字段。"
+    },
+    {
+      "id": "g-bal-deriv",
+      "name": "衍生品专有",
+      "type": "group",
+      "parentId": "g-balance",
+      "description": "衍生品钱包专有字段（其余钱包为 0）：unrealized_pnl。"
+    },
+    {
+      "id": "a-f-pnl",
+      "name": "unrealized_pnl",
+      "type": "app",
+      "parentId": "g-bal-deriv",
+      "description": "unrealizedPNL：umUnrealizedPNL / cmUnrealizedPNL，直接影响 marginBalance。"
+    },
+    {
+      "id": "g-bal-derived",
+      "name": "派生值（计算 · 不存储）",
+      "type": "group",
+      "parentId": "g-balance",
+      "description": "派生指标：margin_balance 与 equity，由字段实时计算，从不落库。"
+    },
+    {
+      "id": "a-d-mb",
+      "name": "margin_balance()",
+      "type": "app",
+      "parentId": "g-bal-derived",
+      "description": "margin_balance() = total + unrealized_pnl（衍生品）；现货即 total。强平引擎关心的数字。"
+    },
+    {
+      "id": "a-d-eq",
+      "name": "equity()",
+      "type": "app",
+      "parentId": "g-bal-derived",
+      "description": "equity() = total + unrealized_pnl − borrowed − interest：扣除负债与利息后的真实净权益。"
     }
   ],
   "modelConnections": [
@@ -1800,6 +1968,27 @@
       "direction": "outgoing",
       "originId": "a-waf",
       "targetId": "a-lb-b"
+    },
+    {
+      "id": "c-acc-wallet",
+      "name": "账户 → 钱包层（1 : N）",
+      "direction": "outgoing",
+      "originId": "a-acct-root",
+      "targetId": "g-wallets"
+    },
+    {
+      "id": "c-wallet-bal",
+      "name": "钱包层 → 资产余额（1 : N）",
+      "direction": "outgoing",
+      "originId": "g-wallets",
+      "targetId": "g-balance"
+    },
+    {
+      "id": "c-bal-derived",
+      "name": "计算派生（不存储）",
+      "direction": "outgoing",
+      "originId": "g-balance",
+      "targetId": "g-bal-derived"
     }
   ],
   "tagGroups": [

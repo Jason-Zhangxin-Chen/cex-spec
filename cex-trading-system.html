@@ -95,13 +95,32 @@ h1{font-size:clamp(24px,3.2vw,32px); letter-spacing:-.01em}
 .conn polyline{transition:stroke-width .15s ease}
 .conn.hl polyline{stroke-width:3.6}
 
+/* ---- 第 2 章：账户模型 ---- */
+h2.sub{font-size:20px; margin-top:40px}
+.tblwrap{margin-top:16px; overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--panel)}
+table.tbl{width:100%; border-collapse:collapse; font-size:13.5px}
+.tbl th,.tbl td{border-bottom:1px solid var(--border); padding:10px 14px; text-align:left; vertical-align:top}
+.tbl tr:last-child th,.tbl tr:last-child td{border-bottom:0}
+.tbl th{background:var(--chip); color:var(--lbl); font-weight:600; white-space:nowrap}
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px; margin-top:16px}
+.card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:15px 17px}
+.card h3{font-size:14.5px}
+.card .fld{font-family:"JetBrains Mono",Consolas,monospace; font-size:12.5px; color:var(--accent); font-weight:600; margin-right:8px}
+.card .cn{color:var(--muted); font-size:13px; font-weight:500}
+.card p{font-size:13px; color:var(--muted); margin-top:7px}
+.card .frm{margin-top:9px; font-size:12.5px; color:var(--lbl); background:var(--chip); border:1px solid var(--border); border-radius:8px; padding:7px 10px; overflow-x:auto; white-space:nowrap}
+.note{margin-top:14px; padding:12px 16px; border-left:3px solid var(--accent); background:var(--panel); border-radius:0 10px 10px 0; font-size:13.5px; color:var(--muted)}
+.notes{margin-top:14px; display:grid; gap:8px; padding:0}
+.notes li{margin:0; padding:10px 14px; background:var(--panel); border:1px solid var(--border); border-radius:10px; font-size:13.5px; color:var(--muted); list-style:none}
+.notes b{color:var(--fg)}
+.code .s{color:#8fd3a8}
 /* ---- import ---- */
 .steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin-top:18px}
 .step{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px}
 .step .n{width:24px; height:24px; border-radius:50%; background:var(--accent-soft); color:var(--accent); display:grid; place-items:center; font-size:13px; font-weight:700; margin-bottom:8px}
 .step h3{font-size:14.5px; margin-bottom:5px}
 .step p{font-size:13.5px; color:var(--muted)}
-.code{margin-top:18px; background:var(--chrome); border-radius:12px; overflow-x:auto; padding:16px 18px; font-size:12.8px; line-height:1.6; color:#cdd6ea}
+.code{margin-top:18px; background:var(--chrome); border-radius:12px; overflow-x:auto; padding:16px 18px; font-size:12.8px; line-height:1.6; color:#cdd6ea; white-space:pre}
 .code .c{color:#6f7d99}
 .code .k{color:#9d8cff}
 .copybtn{margin-top:10px; background:var(--accent); color:#fff; border:0; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer}
@@ -119,6 +138,7 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
     <div class="breadcrumb"><span>Home</span><span>/</span><span class="cur">多活高可用 CEX 交易系统</span></div>
     <nav class="tabs">
       <a href="#overview">01 · 系统概览</a>
+      <a href="#account-model">02 · 账户模型</a>
       <a class="primary" href="#import">导入 IcePanel</a>
     </nav>
   </div>
@@ -130,8 +150,8 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
     <h1>系统概览</h1>
     <p class="lede">多活高可用 CEX 交易系统面向不同区域提供服务：用户请求由云厂商 GTM 依据流量路由策略调度到不同数据中心的 CEX 集群，跨 DC < 100km Raft HA，同数据中心内服务本地 HA 复制。用户面流量（客户端与 OpenAPI）经 GTM DNS 层的 CDN、DDOS 防护与 WAF 过滤后进入 LB 集群（无状态，注册到 GTM）；控制面（八个运营 UI 与 MPC 审批 App）经 VPN 通道一、监控与治理面（集群监控 / 治理 UI）经 VPN 通道二接入。nginx 网关集群负责流量控制、业务请求路由与限流，将请求直接转发至服务集群。服务集群分四类：**内核服务（有状态）**（22 项：实时热备集群虚拟组（预交易集群（资金冻结预留，冻结与订单受理原子化）、OMS & 撮合引擎集群（现货/永续/期权/预测四条产品线）、风控监测引擎集群（标记价/成交/资金费/转账事件驱动）与风控治理服务集群（强平/保险/ADL，含强平状态机）、行情引擎集群（按 Symbol 分片）——均主 + 多从，DC 内仲裁同步日志复制、跨 DC 半同步日志复制）、弱状态服务集群（清算集群（持仓簿/保证金核算/现货内部结算）与结算集群（衍生品结算：定期资金费率、到期期权交割）、充提币服务集群（提现请求、充值扫链、地址白名单、签名编排）、C2C/P2P 交易服务集群、用户资产核算服务集群、AI 交易集群（AI 推理 · 账户委托交易）与指数价格服务集群——快照 + 日志重放 · 事件序号保证幂等恢复）、钱包服务集群（内含钱包&钱包风控、MPC 签名网关、MPC Actor、KYT、KMS/HSM 密钥管理子系统）与数据写入、快照与投影层（账本集群（账本数据单一事实源）、持仓/保证金集群（持仓/保证金数据单一事实源）、数据归档集群（历史数据归档，写入对象存储）与 ES 数据集群（订单/成交/流水查询、应用日志聚合）——事件序号保证幂等）、**边缘服务**（9 项无状态：用户管理集群、鉴权集群、交易调度集群（按账户 ID 分片调度至主预交易节点；预交易集群向其注册主从 IP，双 DC 均可调度）、用户消息集群、KYC 集群、活动服务集群、Open API Key 集群与数据读取管线子组（行情发布/订阅集群 + 数据读取集群））、**控制面服务**（11 项：运营配置（含风控引擎 · 费率）、持仓锁定、红包、IEO、空投、优惠券、审计日志服务、监管报表服务、定时调度服务、资金对账服务与配置中心）、**监控与治理面**（2 项：监控与治理集群——指标 / 健康监控，主从故障切换由共识算法自动完成；撮合回放服务集群——基于列式数据 Raft 集群回放撮合）；无状态 / 有状态以配色区分；Aeron Raft 集群（分布式消息总线）用于服务集群内部服务间通信。数据层集群：Aeron Raft 集群、Redpanda Raft 集群（高性能 Kafka 分布式消息队列）、Redis 集群、行情数据中心、列式数据 Raft 集群（行情回归测试）、SQL Raft 集群（上→下投影 · 下→上恢复）、对象存储 Raft 集群与时间序列 Raft 集群。外部系统连接器：公链 RPC、KYT 提供商、第三方 KYC 提供商、第三方钱包代理、法币通道代理与指数价格数据源。</p>
     <div class="stats">
-      <div class="stat"><b>167</b> 个模型对象</div>
-      <div class="stat"><b>30</b> 条连接</div>
+      <div class="stat"><b>191</b> 个模型对象</div>
+      <div class="stat"><b>33</b> 条连接</div>
       <div class="stat"><b>2</b> 个数据中心</div>
       <div class="stat"><b>1</b> 个 GTM 层</div>
       <div class="stat"><b>44</b> 个内核服务（双 DC）</div>
@@ -1164,10 +1184,685 @@ footer{border-top:1px solid var(--border); padding-block:20px; margin-top:40px; 
     </div>
   </section>
 
+  <section id="account-model">
+    <div class="eyebrow">02 · 账户模型</div>
+    <h1>账户模型</h1>
+    <p class="lede">CEX 账户的数据模型是<b>分层且多维</b>的：它不存单一的「余额」数字，而是按<b>钱包类型 × 资产 × 余额状态</b>（可用、锁定、保证金等）拆分持仓。这一结构是同时支撑现货、杠杆、衍生品与法币业务的必要前提——该模型回答的不只是「用户有多少钱」，而是<b>「现在能用多少、已经承诺了多少」</b>，并同时覆盖每个产品线与每种资产。</p>
+    <div class="stats">
+      <div class="stat"><b>24</b> 个模型对象</div>
+      <div class="stat"><b>3</b> 条连接</div>
+      <div class="stat"><b>3</b> 层结构</div>
+      <div class="stat"><b>7</b> 种钱包</div>
+      <div class="stat"><b>6</b> 个存储字段 + <b>2</b> 个派生值</div>
+    </div>
+
+    <h2 class="sub">层级结构：账户 → 钱包 → 资产余额</h2>
+    <p class="lede">单个用户账户（以唯一 <span class="mono">accountId</span> 标识）不是一个整体资金池，而是多个子账户 / 钱包的容器，每个钱包承担不同的职责。</p>
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>层级</th><th>实体</th><th>说明</th><th>关键字段（示例）</th></tr>
+        <tr><td>1. Account</td><td><span class="mono">Account</span></td><td>根身份。</td><td><span class="mono">accountId</span>、<span class="mono">accountType</span>（SPOT、MARGIN、FUTURES…）、<span class="mono">updateTime</span></td></tr>
+        <tr><td>2. Wallet</td><td><span class="mono">Wallet / 子账户</span></td><td>按产品线隔离资金（现货、全仓杠杆、USDⓈ-M 合约、COIN-M 合约、资金、理财）。</td><td><span class="mono">walletType</span>、<span class="mono">walletBalance</span>（汇总）</td></tr>
+        <tr><td>3. Asset Balance</td><td><span class="mono">AssetBalance</span></td><td>特定钱包内的单资产持仓记录。</td><td><span class="mono">asset</span>（BTC、ETH、USDT）、<span class="mono">free</span>、<span class="mono">locked</span>、<span class="mono">borrowed</span>、<span class="mono">interest</span></td></tr>
+      </table>
+    </div>
+    <div class="note"><b>为什么分离？</b>交易所按产品线隔离钱包（现货 vs 合约）是出于风控与系统架构考量——合约引擎的故障或异常不应直接影响现货钱包。</div>
+
+    <h2 class="sub">单一资产的多维余额</h2>
+    <p class="lede">对特定钱包内的任一资产（如 USDT），模型存储多个<b>余额维度</b>而非单一数字：</p>
+    <div class="cards">
+      <div class="card">
+        <h3><span class="fld">free / availableBalance</span><span class="cn">—— 立即可用</span></h3>
+        <p>立即可用于新订单、提现或划转的数量。Binance API 中现货为 <span class="mono">free</span>，合约 / 杠杆为 <span class="mono">availableBalance</span>。</p>
+        <div class="frm">可用 = 钱包总余额 − 锁定 − 保证金抵押 − 未实现亏损（衍生品）</div>
+      </div>
+      <div class="card">
+        <h3><span class="fld">locked / reserved</span><span class="cn">—— 已预留</span></h3>
+        <p>已预留、因投入他处而不可用的资金：挂单（订单簿上未成交部分）、保证金抵押（支撑杠杆持仓）、理财 / 质押（未赎回的收益产品）。Lighter 的 <span class="mono">AccountAsset</span> 显式命名为 <span class="mono">locked_balance</span>。</p>
+      </div>
+      <div class="card">
+        <h3><span class="fld">totalWalletBalance / balance</span><span class="cn">—— 毛持有量</span></h3>
+        <p>该钱包内资产的毛持有量，未扣锁定、未加减未实现盈亏。Binance 组合保证金 API 将 <span class="mono">totalWalletBalance</span> 定义为某资产跨特定钱包类型的汇总值。</p>
+      </div>
+      <div class="card">
+        <h3><span class="fld">marginBalance</span><span class="cn">—— 有效权益（衍生品 / 杠杆）</span></h3>
+        <p>杠杆交易中的动态指标，代表支撑持仓的有效权益。Lighter 的 <span class="mono">AccountAsset</span> 中 <span class="mono">margin_balance</span> 与 <span class="mono">balance</span>、<span class="mono">locked_balance</span> 分列；全仓杠杆进一步扩展 <span class="mono">crossMarginFree / crossMarginLocked / crossMarginBorrowed / crossMarginInterest</span>。</p>
+        <div class="frm">保证金余额（合约）= 钱包余额 + 未实现盈亏</div>
+      </div>
+      <div class="card">
+        <h3><span class="fld">borrowed &amp; interest</span><span class="cn">—— 债务（杠杆专有）</span></h3>
+        <p>杠杆交易显式跟踪债务：<span class="mono">borrowed</span> 为欠交易所 / 贷方的数量；<span class="mono">interest</span> 为借款累计利息。Binance 的 <span class="mono">MarginBalance</span> GraphQL 类型在 <span class="mono">AssetBalance</span> 之上扩展这两个字段。</p>
+      </div>
+      <div class="card">
+        <h3><span class="fld">unrealizedPNL</span><span class="cn">—— 未实现盈亏（衍生品专有）</span></h3>
+        <p>衍生品钱包（USDⓈ-M 与 COIN-M）的资产记录含 <span class="mono">umUnrealizedPNL</span> 与 <span class="mono">cmUnrealizedPNL</span>，直接影响 <span class="mono">marginBalance</span>。</p>
+      </div>
+    </div>
+
+    <h2 class="sub">法币（USD）如何融入</h2>
+    <p class="lede">法币（如 USD）在系统里就是<b>另一种资产</b>：用户现货或资金钱包中的美元持仓即 <span class="mono">asset = "USD"</span> 的 <span class="mono">AssetBalance</span>，与加密资产共享同样的维度（<span class="mono">free</span>、<span class="mono">locked</span>）。唯一区别在出入金通道（银行转账 vs 区块链），核心余额数据模型不变。</p>
+
+    <h2 class="sub">概念 Schema</h2>
+    <div class="code" id="code-schema">Account
+  - account_id (PK)
+  - user_id
+  - account_type (SPOT, MARGIN, FUTURES, etc.)
+  - status
+  - update_time
+
+AssetBalance  (PK: account_id + wallet_type + asset)
+  - account_id (FK)
+  - wallet_type (e.g., SPOT, CROSS_MARGIN, UM_FUTURES)
+  - asset (e.g., BTC, USDT, USD)
+  - total_balance          <span class="c">// 钱包毛余额</span>
+  - available_balance      <span class="c">// 可用于新订单 / 提现</span>
+  - locked_balance         <span class="c">// 挂单、抵押预留</span>
+  - borrowed               <span class="c">// 杠杆负债（不适用时为 0）</span>
+  - interest               <span class="c">// 累计杠杆利息</span>
+  - unrealized_pnl         <span class="c">// 衍生品钱包专有</span>
+  - margin_balance         <span class="c">// 钱包余额 + 未实现盈亏（衍生品）</span>
+</div>
+    <div class="note"><b>关键结论：</b>该模型回答的不只是「用户有多少钱」，而是「现在能用多少、已经承诺了多少」——横跨每个产品线与每种资产。</div>
+
+    <h2 class="sub">Rust 参考实现</h2>
+    <div class="code" id="code-rust"><span class="k">use</span> chrono::{DateTime, Utc};
+<span class="k">use</span> rust_decimal::Decimal;
+<span class="k">use</span> rust_decimal_macros::dec;
+<span class="k">use</span> serde::{Deserialize, Serialize};
+<span class="k">use</span> std::collections::HashMap;
+<span class="k">use</span> thiserror::Error;
+
+<span class="c">// ───────────────────────────── ID 与新类型 ─────────────────────────────</span>
+
+#[<span class="k">derive</span>(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+<span class="k">pub</span> <span class="k">struct</span> AccountId(<span class="k">pub</span> u64);
+
+#[<span class="k">derive</span>(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+<span class="k">pub</span> <span class="k">struct</span> UserId(<span class="k">pub</span> u64);
+
+<span class="c">/// 资产代码，规范化为大写。新类型保证 `Symbol`（BTCUSDT）</span>
+<span class="c">/// 永远不会被当作 `Asset`（BTC）传入。</span>
+#[<span class="k">derive</span>(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+<span class="k">pub</span> <span class="k">struct</span> Asset(String);
+
+<span class="k">impl</span> Asset {
+    <span class="k">pub</span> <span class="k">fn</span> new(s: <span class="k">impl</span> Into&lt;String&gt;) -&gt; <span class="k">Self</span> {
+        Asset(s.into().trim().to_uppercase())
+    }
+    <span class="k">pub</span> <span class="k">fn</span> as_str(&amp;<span class="k">self</span>) -&gt; &amp;str {
+        &amp;<span class="k">self</span>.0
+    }
+}
+<span class="k">impl</span> From&lt;&amp;str&gt; <span class="k">for</span> Asset {
+    <span class="k">fn</span> from(s: &amp;str) -&gt; <span class="k">Self</span> {
+        <span class="k">Self</span>::new(s)
+    }
+}
+
+<span class="c">// ───────────────────────────── 枚举 ─────────────────────────────</span>
+
+#[<span class="k">derive</span>(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = <span class="s">&quot;SCREAMING_SNAKE_CASE&quot;</span>)]
+<span class="k">pub</span> <span class="k">enum</span> AccountType {
+    Standard,
+    PortfolioMargin,
+    SubAccount,
+}
+
+#[<span class="k">derive</span>(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = <span class="s">&quot;SCREAMING_SNAKE_CASE&quot;</span>)]
+<span class="k">pub</span> <span class="k">enum</span> AccountStatus {
+    Active,
+    Frozen,
+    Closed,
+}
+
+<span class="c">/// 余额行主键的一部分。`IsolatedMargin(pair_id)`</span>
+<span class="c">/// 让每个逐仓交易对拥有自己的虚拟钱包。</span>
+#[<span class="k">derive</span>(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = <span class="s">&quot;SCREAMING_SNAKE_CASE&quot;</span>)]
+<span class="k">pub</span> <span class="k">enum</span> WalletType {
+    Spot,
+    CrossMargin,
+    IsolatedMargin(u32), <span class="c">// 交易对 id</span>
+    UsdMFutures,
+    CoinMFutures,
+    Funding,
+    Earn,
+}
+
+<span class="k">impl</span> WalletType {
+    <span class="k">pub</span> <span class="k">fn</span> is_margin(<span class="k">self</span>) -&gt; bool {
+        matches!(<span class="k">self</span>, <span class="k">Self</span>::CrossMargin | <span class="k">Self</span>::IsolatedMargin(_))
+    }
+    <span class="k">pub</span> <span class="k">fn</span> is_derivatives(<span class="k">self</span>) -&gt; bool {
+        matches!(<span class="k">self</span>, <span class="k">Self</span>::UsdMFutures | <span class="k">Self</span>::CoinMFutures)
+    }
+<span class="c">    /// 只有衍生品钱包把未实现盈亏计入保证金余额。</span>
+    <span class="k">pub</span> <span class="k">fn</span> has_pnl(<span class="k">self</span>) -&gt; bool {
+        <span class="k">self</span>.is_derivatives()
+    }
+}
+
+<span class="c">// ───────────────────────────── 错误类型 ─────────────────────────────</span>
+
+#[<span class="k">derive</span>(Debug, Error, PartialEq)]
+<span class="k">pub</span> <span class="k">enum</span> BalanceError {
+    #[error(<span class="s">&quot;amount must be positive, got {0}&quot;</span>)]
+    NonPositiveAmount(Decimal),
+    #[error(<span class="s">&quot;insufficient available balance: need {need}, have {have}&quot;</span>)]
+    InsufficientAvailable { need: Decimal, have: Decimal },
+    #[error(<span class="s">&quot;invariant violated: {0}&quot;</span>)]
+    Invariant(String),
+}
+
+<span class="c">// ───────────────────────────── 资产余额 ─────────────────────────────</span>
+
+<span class="c">/// 规范行。主键：(account_id, wallet_type, asset)。</span>
+<span class="c">/// 与数据库表 1:1 对应；产品线专有字段默认为 0。</span>
+#[<span class="k">derive</span>(Debug, Clone, PartialEq, Serialize, Deserialize)]
+<span class="k">pub</span> <span class="k">struct</span> AssetBalance {
+    <span class="k">pub</span> account_id: AccountId,
+    <span class="k">pub</span> wallet_type: WalletType,
+    <span class="k">pub</span> asset: Asset,
+
+<span class="c">    /// 该钱包的毛持仓（未扣负债，含锁定）。</span>
+    <span class="k">pub</span> total: Decimal,
+<span class="c">    /// 立即可用于下单 / 提现 / 划转。</span>
+    <span class="k">pub</span> available: Decimal,
+<span class="c">    /// 已预留：挂单、抵押、质押锁定。</span>
+    <span class="k">pub</span> locked: Decimal,
+
+<span class="c">    // 仅杠杆钱包（其余为 0）</span>
+    #[serde(default)]
+    <span class="k">pub</span> borrowed: Decimal,
+    #[serde(default)]
+    <span class="k">pub</span> interest: Decimal,
+
+<span class="c">    // 仅衍生品钱包（其余为 0）</span>
+    #[serde(default)]
+    <span class="k">pub</span> unrealized_pnl: Decimal,
+
+    <span class="k">pub</span> updated_at: DateTime&lt;Utc&gt;,
+}
+
+<span class="k">impl</span> AssetBalance {
+<span class="c">    // ── 各产品线构造函数 ──</span>
+
+    <span class="k">pub</span> <span class="k">fn</span> spot(account_id: AccountId, asset: <span class="k">impl</span> Into&lt;Asset&gt;, amount: Decimal) -&gt; <span class="k">Self</span> {
+        <span class="k">Self</span> {
+            account_id,
+            wallet_type: WalletType::Spot,
+            asset: asset.into(),
+            total: amount,
+            available: amount,
+            locked: Decimal::ZERO,
+            borrowed: Decimal::ZERO,
+            interest: Decimal::ZERO,
+            unrealized_pnl: Decimal::ZERO,
+            updated_at: Utc::now(),
+        }
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> margin(
+        account_id: AccountId,
+        wallet_type: WalletType,
+        asset: <span class="k">impl</span> Into&lt;Asset&gt;,
+        total: Decimal,
+        borrowed: Decimal,
+        interest: Decimal,
+    ) -&gt; <span class="k">Self</span> {
+        debug_assert!(wallet_type.is_margin());
+        <span class="k">Self</span> {
+            account_id,
+            wallet_type,
+            asset: asset.into(),
+            total,
+            available: total - borrowed - interest, <span class="c">// 可能为负 → 触发保证金追缴</span>
+            locked: Decimal::ZERO,
+            borrowed,
+            interest,
+            unrealized_pnl: Decimal::ZERO,
+            updated_at: Utc::now(),
+        }
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> derivative(
+        account_id: AccountId,
+        wallet_type: WalletType,
+        asset: <span class="k">impl</span> Into&lt;Asset&gt;,
+        wallet_balance: Decimal,
+        unrealized_pnl: Decimal,
+    ) -&gt; <span class="k">Self</span> {
+        debug_assert!(wallet_type.has_pnl());
+        <span class="k">Self</span> {
+            account_id,
+            wallet_type,
+            asset: asset.into(),
+            total: wallet_balance,
+            available: wallet_balance,
+            locked: Decimal::ZERO,
+            borrowed: Decimal::ZERO,
+            interest: Decimal::ZERO,
+            unrealized_pnl,
+            updated_at: Utc::now(),
+        }
+    }
+
+<span class="c">    // ── 派生指标（从不存储，总是实时计算）──</span>
+
+<span class="c">    /// 钱包余额 + 未实现盈亏。对衍生品而言这是强平引擎关心的数字；</span>
+<span class="c">    /// 对现货而言它就是 `total`。</span>
+    <span class="k">pub</span> <span class="k">fn</span> margin_balance(&amp;<span class="k">self</span>) -&gt; Decimal {
+        <span class="k">if</span> <span class="k">self</span>.wallet_type.has_pnl() {
+            <span class="k">self</span>.total + <span class="k">self</span>.unrealized_pnl
+        } <span class="k">else</span> {
+            <span class="k">self</span>.total
+        }
+    }
+
+<span class="c">    /// 扣除负债与利息后的真实净权益。</span>
+    <span class="k">pub</span> <span class="k">fn</span> equity(&amp;<span class="k">self</span>) -&gt; Decimal {
+        <span class="k">self</span>.total + <span class="k">self</span>.unrealized_pnl - <span class="k">self</span>.borrowed - <span class="k">self</span>.interest
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> is_negative(&amp;<span class="k">self</span>) -&gt; bool {
+        <span class="k">self</span>.equity().is_sign_negative()
+    }
+
+<span class="c">    // ── 变更方法（唯一被允许的资金变动方式）──</span>
+
+    <span class="k">pub</span> <span class="k">fn</span> lock(&amp;<span class="k">mut</span> <span class="k">self</span>, amount: Decimal) -&gt; Result&lt;(), BalanceError&gt; {
+        <span class="k">if</span> amount &lt;= Decimal::ZERO {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::NonPositiveAmount(amount));
+        }
+        <span class="k">if</span> amount &gt; <span class="k">self</span>.available {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::InsufficientAvailable {
+                need: amount,
+                have: <span class="k">self</span>.available,
+            });
+        }
+        <span class="k">self</span>.available -= amount;
+        <span class="k">self</span>.locked += amount;
+        <span class="k">self</span>.updated_at = Utc::now();
+        <span class="k">Ok</span>(())
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> unlock(&amp;<span class="k">mut</span> <span class="k">self</span>, amount: Decimal) -&gt; Result&lt;(), BalanceError&gt; {
+        <span class="k">if</span> amount &lt;= Decimal::ZERO {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::NonPositiveAmount(amount));
+        }
+        <span class="k">if</span> amount &gt; <span class="k">self</span>.locked {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::Invariant(format!(
+                <span class="s">&quot;unlock {} &gt; locked {}&quot;</span>,
+                amount, <span class="k">self</span>.locked
+            )));
+        }
+        <span class="k">self</span>.locked -= amount;
+        <span class="k">self</span>.available += amount;
+        <span class="k">self</span>.updated_at = Utc::now();
+        <span class="k">Ok</span>(())
+    }
+
+<span class="c">    /// 结算成交：消耗锁定资金，将其移出钱包。</span>
+    <span class="k">pub</span> <span class="k">fn</span> settle(&amp;<span class="k">mut</span> <span class="k">self</span>, amount: Decimal) -&gt; Result&lt;(), BalanceError&gt; {
+        <span class="k">if</span> amount &lt;= Decimal::ZERO {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::NonPositiveAmount(amount));
+        }
+        <span class="k">if</span> amount &gt; <span class="k">self</span>.locked {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::Invariant(format!(
+                <span class="s">&quot;settle {} &gt; locked {}&quot;</span>,
+                amount, <span class="k">self</span>.locked
+            )));
+        }
+        <span class="k">self</span>.locked -= amount;
+        <span class="k">self</span>.total -= amount;
+        <span class="k">self</span>.updated_at = Utc::now();
+        <span class="k">Ok</span>(())
+    }
+
+<span class="c">    // ── 不变量（写入时调用，周期一致性任务中亦调用）──</span>
+
+    <span class="k">pub</span> <span class="k">fn</span> validate(&amp;<span class="k">self</span>) -&gt; Result&lt;(), BalanceError&gt; {
+        <span class="k">const</span> EPS: Decimal = dec!(0.00000001);
+
+        <span class="k">for</span> (name, v) in [
+            (<span class="s">&quot;total&quot;</span>, <span class="k">self</span>.total),
+            (<span class="s">&quot;available&quot;</span>, <span class="k">self</span>.available),
+            (<span class="s">&quot;locked&quot;</span>, <span class="k">self</span>.locked),
+            (<span class="s">&quot;borrowed&quot;</span>, <span class="k">self</span>.borrowed),
+            (<span class="s">&quot;interest&quot;</span>, <span class="k">self</span>.interest),
+        ] {
+            <span class="k">if</span> v.is_sign_negative() &amp;&amp; !(name == <span class="s">&quot;available&quot;</span> &amp;&amp; <span class="k">self</span>.wallet_type.is_margin()) {
+                <span class="k">return</span> <span class="k">Err</span>(BalanceError::Invariant(format!(<span class="s">&quot;{name} is negative: {v}&quot;</span>)));
+            }
+        }
+        <span class="k">if</span> <span class="k">self</span>.available + <span class="k">self</span>.locked &gt; <span class="k">self</span>.total + EPS {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::Invariant(format!(
+                <span class="s">&quot;available {} + locked {} &gt; total {}&quot;</span>,
+                <span class="k">self</span>.available, <span class="k">self</span>.locked, <span class="k">self</span>.total
+            )));
+        }
+        <span class="k">if</span> (<span class="k">self</span>.borrowed != Decimal::ZERO || <span class="k">self</span>.interest != Decimal::ZERO)
+            &amp;&amp; !<span class="k">self</span>.wallet_type.is_margin()
+        {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::Invariant(
+                <span class="s">&quot;debt fields set on non-margin wallet&quot;</span>.into(),
+            ));
+        }
+        <span class="k">if</span> <span class="k">self</span>.unrealized_pnl != Decimal::ZERO &amp;&amp; !<span class="k">self</span>.wallet_type.has_pnl() {
+            <span class="k">return</span> <span class="k">Err</span>(BalanceError::Invariant(
+                <span class="s">&quot;unrealized_pnl set on non-derivatives wallet&quot;</span>.into(),
+            ));
+        }
+        <span class="k">Ok</span>(())
+    }
+}
+
+<span class="c">// ───────────────────────────── 钱包与账户 ─────────────────────────────</span>
+
+#[<span class="k">derive</span>(Debug, Clone, Serialize, Deserialize)]
+<span class="k">pub</span> <span class="k">struct</span> Wallet {
+    <span class="k">pub</span> wallet_type: WalletType,
+    <span class="k">pub</span> balances: HashMap&lt;Asset, AssetBalance&gt;,
+}
+
+<span class="k">impl</span> Wallet {
+    <span class="k">pub</span> <span class="k">fn</span> new(wallet_type: WalletType) -&gt; <span class="k">Self</span> {
+        <span class="k">Self</span> { wallet_type, balances: HashMap::new() }
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> balance(&amp;<span class="k">self</span>, asset: &amp;Asset) -&gt; Option&lt;&amp;AssetBalance&gt; {
+        <span class="k">self</span>.balances.get(asset)
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> available(&amp;<span class="k">self</span>, asset: &amp;Asset) -&gt; Decimal {
+        <span class="k">self</span>.balances.get(asset).map(|b| b.available).unwrap_or_default()
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> upsert(&amp;<span class="k">mut</span> <span class="k">self</span>, balance: AssetBalance) -&gt; Result&lt;(), BalanceError&gt; {
+        balance.validate()?;
+        debug_assert_eq!(balance.wallet_type, <span class="k">self</span>.wallet_type);
+        <span class="k">self</span>.balances.insert(balance.asset.clone(), balance);
+        <span class="k">Ok</span>(())
+    }
+}
+
+#[<span class="k">derive</span>(Debug, Clone, Serialize, Deserialize)]
+<span class="k">pub</span> <span class="k">struct</span> Account {
+    <span class="k">pub</span> id: AccountId,
+    <span class="k">pub</span> user_id: UserId,
+    <span class="k">pub</span> account_type: AccountType,
+    <span class="k">pub</span> status: AccountStatus,
+    <span class="k">pub</span> wallets: HashMap&lt;WalletType, Wallet&gt;,
+    <span class="k">pub</span> updated_at: DateTime&lt;Utc&gt;,
+}
+
+<span class="k">impl</span> Account {
+    <span class="k">pub</span> <span class="k">fn</span> wallet(&amp;<span class="k">self</span>, wallet_type: WalletType) -&gt; Option&lt;&amp;Wallet&gt; {
+        <span class="k">self</span>.wallets.get(&amp;wallet_type)
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> balance(&amp;<span class="k">self</span>, wallet_type: WalletType, asset: &amp;Asset) -&gt; Option&lt;&amp;AssetBalance&gt; {
+        <span class="k">self</span>.wallets.get(&amp;wallet_type)?.balance(asset)
+    }
+
+<span class="c">    /// 「用户现在实际能动用多少 USDT（所有钱包合计）？」</span>
+    <span class="k">pub</span> <span class="k">fn</span> total_available(&amp;<span class="k">self</span>, asset: &amp;Asset) -&gt; Decimal {
+        <span class="k">self</span>.wallets.values().map(|w| w.available(asset)).sum()
+    }
+
+<span class="c">    /// 每资产的净权益，跨所有钱包汇总。</span>
+    <span class="k">pub</span> <span class="k">fn</span> total_equity(&amp;<span class="k">self</span>, asset: &amp;Asset) -&gt; Decimal {
+        <span class="k">self</span>.wallets
+            .values()
+            .filter_map(|w| w.balance(asset))
+            .map(AssetBalance::equity)
+            .sum()
+    }
+
+    <span class="k">pub</span> <span class="k">fn</span> validate(&amp;<span class="k">self</span>) -&gt; Result&lt;(), BalanceError&gt; {
+        <span class="k">for</span> wallet in <span class="k">self</span>.wallets.values() {
+            <span class="k">for</span> balance in wallet.balances.values() {
+                <span class="k">if</span> balance.account_id != <span class="k">self</span>.id {
+                    <span class="k">return</span> <span class="k">Err</span>(BalanceError::Invariant(<span class="s">&quot;balance belongs to another account&quot;</span>.into()));
+                }
+                <span class="k">if</span> balance.wallet_type != wallet.wallet_type {
+                    <span class="k">return</span> <span class="k">Err</span>(BalanceError::Invariant(<span class="s">&quot;balance filed under wrong wallet&quot;</span>.into()));
+                }
+                balance.validate()?;
+            }
+        }
+        <span class="k">Ok</span>(())
+    }
+}
+</div>
+    <button class="copybtn" onclick="copyBlock('code-rust', this)">复制代码</button>
+    <ul class="notes">
+      <li><b>AssetBalance 是数据库行，不是事实源。</b>真实 CEX 中权威记录是追加式复式记账账本（<span class="mono">LedgerEntry { account_id, wallet_type, asset, delta, ref_id: OrderId|TradeId|TransferId, seq }</span>），本结构是从账本重建的物化快照。账本让对账与审计成为可能；快照则为热路径提供 O(1) 读取。</li>
+      <li><b>available 是唯一允许为负的字段</b>，且仅限杠杆钱包——这是保证金追缴信号；其余字段均由 <span class="mono">validate()</span> 守护。</li>
+      <li><b><span class="mono">Option&lt;Decimal&gt;</span> vs <span class="mono">Decimal::ZERO</span>：</b>选择平铺零值 + <span class="mono">validate()</span> 在错误钱包类型上拒绝——与交易所的存储方式一致（无 NULL 表、SUM 开销低），同时在边界上用不变量找回类型安全。</li>
+      <li><b>持久化：</b>在 feature flag 下为 <span class="mono">AssetBalance</span> derive <span class="mono">sqlx::FromRow</span>，表主键 <span class="mono">PRIMARY KEY (account_id, wallet_type, asset)</span>；跨钱包聚合查询需要 <span class="mono">(account_id, asset)</span> 覆盖索引。</li>
+      <li><b>使用 <span class="mono">rust_decimal</span>（<span class="mono">features = ["serde-with-str"]</span>）：</b>金额以 JSON 字符串往返，绝不经过 <span class="mono">f64</span>。</li>
+    </ul>
+
+    <h2 class="sub">模型图</h2>
+    <p class="lede">同一资产（USDT）会出现在多个不同钱包中，各自拥有独立的 <span class="mono">total / available / locked / borrowed / unrealized_pnl</span> 维度——这正是分离钱包的全部意义：<b>合约仓位的 USDT 抵押 ≠ 可用于现货的 USDT</b>。</p>
+
+    <figure class="canvas-scroll" style="margin:20px 0 0">
+      <svg viewBox="0 0 1460 880" role="img" aria-label="账户模型层级图：账户层（Account 根身份，含 account_id/user_id/account_type/status/updated_at）以 1:N 关联钱包层（按 WalletType 分键：Spot、CrossMargin、IsolatedMargin(pair)、USDⓈ-M、COIN-M、Funding、Earn 七种钱包），再以 1:N 关联资产余额层（AssetBalance，主键 account_id+wallet_type+asset；核心字段 total/available/locked，保证金专有 borrowed/interest，衍生品专有 unrealized_pnl；派生值 margin_balance 与 equity 计算、不存储）。">
+        <defs>
+          <pattern id="dots2" width="26" height="26" patternUnits="userSpaceOnUse">
+            <circle cx="1.4" cy="1.4" r="1.4" fill="var(--dot)"/>
+          </pattern>
+          <marker id="ah2" viewBox="0 0 10 10" refX="8.4" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/>
+          </marker>
+        </defs>
+
+        <rect x="0" y="0" width="1460" height="880" fill="var(--canvas)"/>
+        <rect x="0" y="0" width="1460" height="880" fill="url(#dots2)"/>
+
+        <!-- ===== 账户模型（系统容器） ===== -->
+        <g class="obj" data-name="账户模型" data-cat="core" data-desc="账户数据模型：层级结构 Account → Wallet → AssetBalance，按钱包类型 × 资产 × 余额状态多维建模，支撑现货、杠杆、衍生品与法币业务。">
+          <rect x="60" y="24" width="1340" height="840" rx="12" fill="none" stroke="var(--border)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <text x="84" y="49" font-size="15.5" font-weight="700" fill="var(--c-core)">账户模型</text>
+        <text x="160" y="50" class="mono" font-size="12" fill="var(--muted)">Account → Wallet → AssetBalance</text>
+
+        <!-- ===== 账户层（Level 0） ===== -->
+        <g class="obj" data-name="账户层（Level 0）" data-cat="core" data-desc="账户层：根身份容器，1 个账户下挂 N 个钱包。">
+          <rect x="100" y="56" width="1260" height="164" rx="12" fill="none" stroke="var(--c-core)" stroke-width="1.6" stroke-dasharray="10 7" opacity="0.55"/>
+        </g>
+        <circle cx="118" cy="76" r="4" fill="var(--c-core)"/>
+        <text x="130" y="81" font-size="15" font-weight="700" fill="var(--c-core)">账户层（Level 0）</text>
+
+        <g class="obj" data-name="Account" data-cat="core" data-desc="账户根身份：accountId、accountType（SPOT、MARGIN、FUTURES…）与 updateTime。">
+          <rect x="140" y="92" width="430" height="100" rx="8" fill="color-mix(in srgb, var(--c-core) 12%, var(--canvas))" stroke="var(--c-core)" stroke-width="2.6"/>
+          <text x="160" y="122" class="mono" font-size="16" font-weight="700" fill="var(--fg)">Account</text>
+          <text x="160" y="148" class="mono" font-size="11.5" fill="var(--muted)">account_id · user_id · account_type · status · updated_at</text>
+          <text x="160" y="170" font-size="12" fill="var(--muted)">账户根身份 · 1 Account → N Wallet</text>
+        </g>
+        <text x="600" y="126"><tspan class="mono" font-size="12.5" fill="var(--lbl)">wallets: HashMap&lt;WalletType, Wallet&gt;</tspan></text>
+        <text x="600" y="150" font-size="12.5" fill="var(--muted)">按产品线隔离 · 1 Account → N Wallet</text>
+
+        <!-- ===== 钱包层（Level 1） ===== -->
+        <g class="obj" data-name="钱包层（Level 1）" data-cat="core" data-desc="钱包层：按 WalletType 分键，按产品线隔离资金——现货、全仓杠杆、USDⓈ-M 合约、COIN-M 合约、资金、理财。">
+          <rect x="100" y="262" width="1260" height="176" rx="12" fill="none" stroke="var(--c-core)" stroke-width="1.6" stroke-dasharray="10 7" opacity="0.55"/>
+        </g>
+        <circle cx="118" cy="282" r="4" fill="var(--c-core)"/>
+        <text x="130" y="287" font-size="15" font-weight="700" fill="var(--c-core)">钱包层（Level 1 · 按 WalletType 分键）</text>
+
+        <g class="obj" data-name="Spot" data-cat="core" data-desc="现货钱包：现货交易资金。">
+          <rect x="128" y="302" width="160" height="58" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
+          <text x="208" y="328" text-anchor="middle" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">Spot</text>
+          <text x="208" y="348" text-anchor="middle" font-size="11" fill="var(--muted)">现货交易</text>
+        </g>
+        <g class="obj" data-name="CrossMargin" data-cat="core" data-desc="全仓杠杆钱包：共享保证金池。">
+          <rect x="302" y="302" width="160" height="58" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
+          <text x="382" y="328" text-anchor="middle" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">CrossMargin</text>
+          <text x="382" y="348" text-anchor="middle" font-size="11" fill="var(--muted)">全仓杠杆</text>
+        </g>
+        <g class="obj" data-name="IsolatedMargin(pair)" data-cat="core" data-desc="逐仓杠杆钱包：每个交易对一个虚拟钱包（携带 pair_id）。">
+          <rect x="476" y="302" width="160" height="58" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
+          <text x="556" y="328" text-anchor="middle" class="mono" font-size="11.5" font-weight="600" fill="var(--fg)">IsolatedMargin(pair)</text>
+          <text x="556" y="348" text-anchor="middle" font-size="11" fill="var(--muted)">逐仓 · 每交易对独立</text>
+        </g>
+        <g class="obj" data-name="USDⓈ-M" data-cat="core" data-desc="U 本位合约钱包：USDT / USDC 抵押，美元计价盈亏。">
+          <rect x="650" y="302" width="160" height="58" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
+          <text x="730" y="328" text-anchor="middle" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">USDⓈ-M</text>
+          <text x="730" y="348" text-anchor="middle" font-size="11" fill="var(--muted)">USDT · USDC 抵押</text>
+        </g>
+        <g class="obj" data-name="COIN-M" data-cat="core" data-desc="币本位合约钱包：BTC / ETH 抵押。">
+          <rect x="824" y="302" width="160" height="58" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
+          <text x="904" y="328" text-anchor="middle" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">COIN-M</text>
+          <text x="904" y="348" text-anchor="middle" font-size="11" fill="var(--muted)">BTC · ETH 抵押</text>
+        </g>
+        <g class="obj" data-name="Funding" data-cat="core" data-desc="资金钱包：充值、提现、P2P 与刷卡支付（→ 股票账户）。">
+          <rect x="998" y="302" width="160" height="58" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
+          <text x="1078" y="328" text-anchor="middle" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">Funding</text>
+          <text x="1078" y="348" text-anchor="middle" font-size="11" fill="var(--muted)">充提 · P2P · 刷卡</text>
+        </g>
+        <g class="obj" data-name="Earn" data-cat="core" data-desc="理财钱包：收益产品申购。">
+          <rect x="1172" y="302" width="160" height="58" rx="8" fill="var(--canvas)" stroke="var(--c-core)" stroke-width="2.2"/>
+          <text x="1252" y="328" text-anchor="middle" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">Earn</text>
+          <text x="1252" y="348" text-anchor="middle" font-size="11" fill="var(--muted)">理财申购</text>
+        </g>
+        <text x="730" y="420" text-anchor="middle" font-size="12.5"><tspan class="mono" fill="var(--lbl)">balances: HashMap&lt;Asset, AssetBalance&gt;</tspan><tspan fill="var(--muted)">  —— 1 Wallet → N Asset（BTC、ETH、USDT、USD …）</tspan></text>
+
+        <!-- ===== 资产余额层（Level 2） ===== -->
+        <g class="obj" data-name="资产余额层（Level 2）" data-cat="md" data-desc="资产余额层：单资产持仓记录，主键 PK=(account_id, wallet_type, asset)。">
+          <rect x="100" y="480" width="1260" height="330" rx="12" fill="none" stroke="var(--c-md)" stroke-width="1.6" stroke-dasharray="10 7" opacity="0.55"/>
+        </g>
+        <circle cx="118" cy="500" r="4" fill="var(--c-md)"/>
+        <text x="130" y="505" font-size="15" font-weight="700" fill="var(--c-md)">资产余额层（Level 2 · PK=(account_id, wallet_type, asset)）</text>
+
+        <g class="obj" data-name="核心字段（所有钱包）" data-cat="md" data-desc="所有钱包共有的余额字段：total / available / locked。">
+          <rect x="140" y="520" width="330" height="200" rx="10" fill="none" stroke="var(--c-md)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="152" cy="532" r="3" fill="var(--c-md)"/>
+        <text x="162" y="536" font-size="12.5" font-weight="700" fill="var(--muted)">核心字段（所有钱包）</text>
+        <g class="obj" data-name="total" data-cat="md" data-desc="total / totalWalletBalance：该钱包持有的资产毛额（含锁定，未扣负债、未加减未实现盈亏）。">
+          <rect x="160" y="550" width="290" height="46" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="176" y="572" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">total</text>
+          <text x="176" y="588" font-size="11" fill="var(--muted)">钱包毛余额（含锁定 · 未扣负债）</text>
+        </g>
+        <g class="obj" data-name="available" data-cat="md" data-desc="available / free：立即可用于新订单、提现或划转；唯一允许为负的字段（仅杠杆钱包——保证金追缴信号）。">
+          <rect x="160" y="604" width="290" height="46" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="176" y="626" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">available</text>
+          <text x="176" y="642" font-size="11" fill="var(--muted)">立即可用：下单 · 提现 · 划转</text>
+        </g>
+        <g class="obj" data-name="locked" data-cat="md" data-desc="locked / reserved：已预留资金——挂单未成交部分、保证金抵押、理财未赎回；Lighter 中称 locked_balance。">
+          <rect x="160" y="658" width="290" height="46" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="176" y="680" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">locked</text>
+          <text x="176" y="696" font-size="11" fill="var(--muted)">预留：挂单 · 抵押 · 质押锁定</text>
+        </g>
+
+        <g class="obj" data-name="保证金专有" data-cat="md" data-desc="杠杆钱包专有字段（其余钱包为 0）：borrowed / interest。">
+          <rect x="490" y="520" width="300" height="200" rx="10" fill="none" stroke="var(--c-md)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="502" cy="532" r="3" fill="var(--c-md)"/>
+        <text x="512" y="536" font-size="12.5" font-weight="700" fill="var(--muted)">保证金专有</text>
+        <g class="obj" data-name="borrowed" data-cat="md" data-desc="borrowed：欠交易所 / 贷方的借款数量。">
+          <rect x="510" y="550" width="260" height="46" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="526" y="572" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">borrowed</text>
+          <text x="526" y="588" font-size="11" fill="var(--muted)">欠交易所 / 贷方的借款</text>
+        </g>
+        <g class="obj" data-name="interest" data-cat="md" data-desc="interest：借款累计利息；Binance MarginBalance 类型扩展字段。">
+          <rect x="510" y="604" width="260" height="46" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="526" y="626" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">interest</text>
+          <text x="526" y="642" font-size="11" fill="var(--muted)">借款累计利息</text>
+        </g>
+
+        <g class="obj" data-name="衍生品专有" data-cat="md" data-desc="衍生品钱包专有字段（其余钱包为 0）：unrealized_pnl。">
+          <rect x="810" y="520" width="300" height="200" rx="10" fill="none" stroke="var(--c-md)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="822" cy="532" r="3" fill="var(--c-md)"/>
+        <text x="832" y="536" font-size="12.5" font-weight="700" fill="var(--muted)">衍生品专有</text>
+        <g class="obj" data-name="unrealized_pnl" data-cat="md" data-desc="unrealizedPNL：umUnrealizedPNL / cmUnrealizedPNL，直接影响 marginBalance。">
+          <rect x="830" y="550" width="260" height="46" rx="8" fill="var(--canvas)" stroke="var(--c-md)" stroke-width="2.2"/>
+          <text x="846" y="572" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">unrealized_pnl</text>
+          <text x="846" y="588" font-size="11" fill="var(--muted)">umUnrealizedPNL · cmUnrealizedPNL</text>
+        </g>
+
+        <g class="obj" data-name="派生值（计算 · 不存储）" data-cat="acc" data-desc="派生指标：margin_balance 与 equity，由字段实时计算，从不落库。">
+          <rect x="140" y="736" width="990" height="62" rx="10" fill="none" stroke="var(--c-acc)" stroke-width="1.4" stroke-dasharray="6 5"/>
+        </g>
+        <circle cx="152" cy="748" r="3" fill="var(--c-acc)"/>
+        <text x="162" y="752" font-size="12.5" font-weight="700" fill="var(--muted)">派生值（计算 · 不存储）</text>
+        <g class="obj" data-name="margin_balance()" data-cat="acc" data-desc="margin_balance() = total + unrealized_pnl（衍生品）；现货即 total。强平引擎关心的数字。">
+          <rect x="420" y="742" width="330" height="48" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="436" y="764" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">margin_balance()</text>
+          <text x="436" y="781" class="mono" font-size="11" fill="var(--muted)">total + unrealized_pnl（衍生品）</text>
+        </g>
+        <g class="obj" data-name="equity()" data-cat="acc" data-desc="equity() = total + unrealized_pnl − borrowed − interest：扣除负债与利息后的真实净权益。">
+          <rect x="770" y="742" width="340" height="48" rx="8" fill="var(--canvas)" stroke="var(--c-acc)" stroke-width="2.2"/>
+          <text x="786" y="764" class="mono" font-size="12.5" font-weight="600" fill="var(--fg)">equity()</text>
+          <text x="786" y="781" class="mono" font-size="11" fill="var(--muted)">total + unrealized_pnl − borrowed − interest</text>
+        </g>
+
+        <!-- ===== 连接 ===== -->
+        <g class="conn" data-name="账户 → 钱包（1 : N）" data-desc="Account → Wallet：HashMap&lt;WalletType, Wallet&gt;，按产品线隔离风险（合约引擎故障 ≠ 现货损失）。">
+          <polyline points="355,192 355,262" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah2)"/>
+          <text x="363" y="231" text-anchor="start" class="mono" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">1 : N</text>
+        </g>
+        <g class="conn" data-name="钱包 → 资产余额（1 : N）" data-desc="Wallet → AssetBalance：HashMap&lt;Asset, AssetBalance&gt;，热路径 O(1) 查找（acct.wallet(Spot)?.balance(&amp;BTC)）。">
+          <polyline points="355,438 355,480" fill="none" stroke="var(--line)" stroke-width="1.8" marker-end="url(#ah2)"/>
+          <text x="363" y="463" text-anchor="start" class="mono" font-size="12" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">1 : N</text>
+        </g>
+        <g class="conn" data-name="计算（不存储）" data-desc="margin_balance 与 equity 由字段实时计算，从不落库。">
+          <polyline points="655,720 655,736" fill="none" stroke="var(--line)" stroke-width="1.8" stroke-dasharray="5 5" marker-end="url(#ah2)"/>
+          <text x="663" y="729" text-anchor="start" font-size="11.5" fill="var(--lbl)" paint-order="stroke" stroke="var(--canvas)" stroke-width="4">计算 · 不存储</text>
+        </g>
+      </svg>
+      <figcaption hidden>账户模型层级图</figcaption>
+    </figure>
+
+    <div class="info-strip">
+      <span class="dot" style="background:var(--line)"></span>
+      <span class="nm" style="color:var(--muted)">悬停对象或连接</span>
+      <span class="ds">查看其说明</span>
+    </div>
+
+    <div class="legend">
+      <span class="chip"><span class="sw" style="background:var(--c-core)"></span>账户 / 钱包层</span>
+      <span class="chip"><span class="sw" style="background:var(--c-md)"></span>资产余额层</span>
+      <span class="chip"><span class="sw" style="background:var(--c-acc)"></span>派生值（不存储）</span>
+      <span class="chip" style="border-style:dashed">依据 account_model.md 绘制</span>
+    </div>
+
+    <h2 class="sub">关系汇总</h2>
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>边</th><th>基数</th><th>机制</th><th>为什么</th></tr>
+        <tr><td>Account → Wallet</td><td>1 : N</td><td><span class="mono">HashMap&lt;WalletType, Wallet&gt;</span></td><td>按产品线隔离风险（合约引擎故障 ≠ 现货损失）</td></tr>
+        <tr><td>Wallet → AssetBalance</td><td>1 : N</td><td><span class="mono">HashMap&lt;Asset, AssetBalance&gt;</span></td><td>热路径 O(1) 查找（<span class="mono">acct.wallet(Spot)?.balance(&amp;BTC)</span>）</td></tr>
+        <tr><td>AssetBalance</td><td>叶子行</td><td><span class="mono">PK = (account_id, wallet_type, asset)</span></td><td>每（账户、产品、资产）三元组唯一</td></tr>
+        <tr><td>WalletType</td><td>封闭枚举</td><td><span class="mono">IsolatedMargin(u32)</span> 携带交易对 id</td><td>逐仓杠杆需要每个交易对一个虚拟钱包</td></tr>
+      </table>
+    </div>
+    <div class="note"><b>经验法则：</b>如果想在这棵树里把资金从一个盒子移到另一个盒子，那是复式记账账本的转账，而不是对单个 <span class="mono">AssetBalance</span> 的修改——上面的树只是<b>快照</b>，账本才是<b>事实源</b>。</div>
+
+    <h2 class="sub">钱包用途速查</h2>
+    <p class="lede">🧭 快速参考：用户想做什么，该用哪个钱包：</p>
+    <div class="tblwrap">
+      <table class="tbl">
+        <tr><th>用户想做什么</th><th>钱包类型</th><th>抵押资产</th></tr>
+        <tr><td>现货 BTC/USDT 交易</td><td><span class="mono">Spot</span></td><td>BTC / USDT</td></tr>
+        <tr><td>美元计价盈亏的杠杆</td><td><span class="mono">USDⓈ-M Futures</span></td><td>USDT / USDC</td></tr>
+        <tr><td>用自己的 BTC 作抵押的杠杆</td><td><span class="mono">COIN-M Futures</span></td><td>BTC / ETH</td></tr>
+        <tr><td>充值、提现、P2P 或刷卡支付</td><td><span class="mono">Funding</span>（→ 股票账户）</td><td>加密资产 / USD 结算货币</td></tr>
+        <tr><td>闲置资产赚收益</td><td><span class="mono">Earn</span></td><td>所申购资产</td></tr>
+      </table>
+    </div>
+  </section>
+
+
   <section id="import">
     <div class="eyebrow">导入 IcePanel</div>
     <h2>导入 IcePanel</h2>
-    <p class="lede">本概览对应的完整模型 —— 167 个对象、30 条连接 —— 保存在 <span class="mono">icepanel-landscape.json</span>，采用 IcePanel 的 Model-as-code 格式，一次 API 调用即可全部创建。</p>
+    <p class="lede">两章对应的完整模型 —— 191 个对象、33 条连接 —— 保存在 <span class="mono">icepanel-landscape.json</span>，采用 IcePanel 的 Model-as-code 格式，一次 API 调用即可全部创建。</p>
     <div class="steps">
       <div class="step">
         <div class="n">1</div>
@@ -1199,47 +1894,48 @@ curl -X POST <span class="k">"https://api.icepanel.io/v1/landscapes/$ID/versions
   -H <span class="k">"X-API-Key: $ICEPANEL_API_KEY"</span> \
   -H <span class="k">"Content-Type: application/json"</span> \
   --data-binary @icepanel-landscape.json</div>
-    <button class="copybtn" onclick="copyCode()">复制命令</button>
-    <div class="files">项目文件：<span class="mono">icepanel-landscape.json</span>（模型数据）· <span class="mono">import_to_icepanel.py</span>（导入脚本）· 本页面（<span class="mono">cex-trading-system.html</span>）· 规格说明（<span class="mono">spec.md</span>）</div>
+    <button class="copybtn" onclick="copyBlock('codeblock', this)">复制命令</button>
+    <div class="files">项目文件：<span class="mono">icepanel-landscape.json</span>（模型数据）· <span class="mono">import_to_icepanel.py</span>（导入脚本）· 本页面（<span class="mono">cex-trading-system.html</span>）· 规格说明（<span class="mono">spec.md</span> · <span class="mono">account_model.md</span>）</div>
   </section>
 
   <footer>
-    <span>多活高可用 CEX 交易系统 · 系统概览</span>
-    <span>第 1 节：依据 spec.md 绘制，后续章节随输入文档逐步补充。</span>
+    <span>多活高可用 CEX 交易系统 · 系统概览 + 账户模型</span>
+    <span>第 1 节依据 spec.md；第 2 节依据 account_model.md（含 Rust 参考实现与模型图）。</span>
   </footer>
 </main>
 
 <script>
-const strip = document.getElementById('infostrip');
-const dot = document.getElementById('infodot');
-const nameEl = document.getElementById('infoname');
-const descEl = document.getElementById('infodesc');
 const CATS = {ext:'var(--c-ext)', edge:'var(--c-edge)', gw:'var(--c-gw)',
               core:'var(--c-core)', md:'var(--c-md)', acc:'var(--c-acc)',
               infra:'var(--c-infra)'};
 const DEFAULT = {name:'悬停对象或连接', desc:'查看其说明', color:'var(--line)'};
-document.querySelectorAll('.obj, .conn').forEach(el => {
-  el.addEventListener('mouseover', () => {
-    el.classList.add('hl');
-    nameEl.textContent = el.dataset.name;
-    nameEl.style.color = 'var(--fg)';
-    descEl.textContent = el.dataset.desc || '';
-    dot.style.background = CATS[el.dataset.cat] || 'var(--line)';
-  });
-  el.addEventListener('mouseout', () => {
-    el.classList.remove('hl');
-    nameEl.textContent = DEFAULT.name;
-    nameEl.style.color = 'var(--muted)';
-    descEl.textContent = DEFAULT.desc;
-    dot.style.background = DEFAULT.color;
+document.querySelectorAll('section').forEach(section => {
+  const strip = section.querySelector('.info-strip');
+  if (!strip) return;
+  const dot = strip.querySelector('.dot'), nameEl = strip.querySelector('.nm'), descEl = strip.querySelector('.ds');
+  section.querySelectorAll('.obj, .conn').forEach(el => {
+    el.addEventListener('mouseover', () => {
+      el.classList.add('hl');
+      nameEl.textContent = el.dataset.name;
+      nameEl.style.color = 'var(--fg)';
+      descEl.textContent = el.dataset.desc || '';
+      dot.style.background = CATS[el.dataset.cat] || 'var(--line)';
+    });
+    el.addEventListener('mouseout', () => {
+      el.classList.remove('hl');
+      nameEl.textContent = DEFAULT.name;
+      nameEl.style.color = 'var(--muted)';
+      descEl.textContent = DEFAULT.desc;
+      dot.style.background = DEFAULT.color;
+    });
   });
 });
-function copyCode(){
-  const t = document.getElementById('codeblock').innerText;
+function copyBlock(id, btn){
+  const t = document.getElementById(id).innerText;
   navigator.clipboard.writeText(t).then(() => {
-    const b = document.querySelector('.copybtn');
-    b.textContent = '已复制 ✓';
-    setTimeout(() => b.textContent = '复制命令', 1600);
+    const orig = btn.textContent;
+    btn.textContent = '已复制 ✓';
+    setTimeout(() => btn.textContent = orig, 1600);
   }).catch(() => {});
 }
 </script>
